@@ -36,12 +36,12 @@ for (auto [id, name] : std::views::zip(ids, names)) { /* ... */ }
 
 - 順序を保持する。i 番目の要素は各範囲の i 番目の要素からなる `std::tuple`
 - 長さは **最も短い** 入力に合わせて打ち切る。すべて sized なら結果も sized で `size()` は最小値
-- 遅延評価。ビューは各範囲への参照だけを持ち、走査時に元の要素を読む
+- 遅延評価。左辺値の範囲は `ref_view` で借用し（元の範囲をビューより長く生存させる）、右辺値のコンテナは `owning_view` で所有する。走査時に基底の要素を読む
 - 入力を変更しない。要素は **参照の tuple**（`tuple<T&, U&>`）で、`auto [a, b]`（`&&` 無し）で受けても書き込みは元の範囲に反映される。const な範囲は `const T&`
 - すべて random_access なら結果も random_access で添字アクセスできる
 - 引数は可変長（`zip_view` 自体は 1 つ以上のビューを要求する）。いずれかが空なら空。引数なしの `views::zip()` は `views::empty<tuple<>>` と同じ空ビューになると規定されている
 - zip した範囲は `ranges::sort` できる（C++23 の proxy reference 対応）。`ranges::sort(views::zip(keys, vals))` でキーと値が同時に並べ替わる
-- 例外は投げない
+- 自身は例外を投げないが、入力範囲のビュー構築（ムーブなど）や走査が投げた例外はそのまま伝播する
 
 ## Alternatives
 

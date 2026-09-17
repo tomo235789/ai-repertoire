@@ -11,7 +11,7 @@ C# で「ちょっとしたユーティリティ」を書きたくなったら�
 
 1. `cards/` の frontmatter `tags` と `title` を用途語（日本語・英語どちらでも）で検索する
 2. 該当カードがあれば、その `## Signature` と `## Contract` に従って既存 API を使う。`## Usage` をそのまま貼れる
-3. 該当がなければ自前実装してよい。ただし同じ形式のカードを `status: draft` で `cards/` に提案する（`../schema/card.schema.json` と `../README.md` の「カードの書き方」を参照）
+3. 該当がなければ自前実装してよい。ただし同じ形式のカードを `status: public` で `cards/` に提案する（PR テンプレートの抽象化チェックリストを通す。`../schema/card.schema.json` と `../README.md` の「カードの書き方」を参照）
 
 ## 参照先ライブラリ
 

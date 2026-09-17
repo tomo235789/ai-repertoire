@@ -36,7 +36,7 @@ int page = std::clamp(page_arg, 1, last_page);  // 値で受ける
 - 返り値は **引数への参照**（`const T&`）。範囲内なら `v` そのものの参照が返る。値で受ければ安全だが、`const int& r = std::clamp(x, 0, 100)` のように参照で受けると `0` や `100` の一時オブジェクトを指して寿命切れになる（GCC 13 以降は `-Wall -Wextra` で `-Wdangling-reference` の警告が出る）
 - `hi < lo` は事前条件違反で **未定義動作**。例外は投げない。libstdc++ のアサート（GCC 13 は `-D_GLIBCXX_ASSERTIONS` 指定時、GCC 16 は最適化なしの既定）が有効なら abort し、無効なら黙って値が返る
 - 3 引数は同じ型 `T` に推論される。`std::clamp(5, 0.0, 10.0)` は推論の衝突でコンパイルエラー。`std::clamp<double>(5, 0.0, 10.0)` と明示するか全部同じ型で渡す
-- `v` が `NaN` なら比較がすべて偽になり `v`（`NaN`）が返る。`lo` や `hi` が `NaN` のときはその境界だけが効かない（`clamp(5.0, NaN, 1.0)` は `1.0`、`clamp(-5.0, NaN, 1.0)` は `-5.0`、`clamp(-5.0, 0.0, NaN)` は `0.0`）
+- `NaN` は **未サポート**。`NaN` を含む浮動小数点の `<` は要求される狭義弱順序を満たさず、結果は規格で決まらない（libstdc++ で `v` が `NaN` なら `NaN` が返るのは実装上の観察で、契約ではない）。呼び出し前に `std::isnan` で弾く
 - 第 4 引数に比較関数を渡せる。`std::greater{}` なら `lo >= hi` の順で渡す
 - 引数を変更しない。`constexpr` で定数式に使える
 
@@ -50,7 +50,7 @@ int page = std::clamp(page_arg, 1, last_page);  // 値で受ける
 
 - TypeScript（es-toolkit）や Python の `min(max(v, lo), hi)` は `lo > hi` でも `hi` を返すが、C++ は未定義動作。引数の順序を取り違えても検出されないので、呼び出し側で `lo <= hi` を保証する
 - es-toolkit の 2 引数形式 `clamp(value, max)` に相当するものは無い。`std::min` を使う
-- es-toolkit はどれか 1 つでも `NaN` なら `NaN` を返すが、C++ は `v` が `NaN` のときだけ。境界に `NaN` が混ざっても気付けない（Python と同じ）
+- es-toolkit はどれか 1 つでも `NaN` なら `NaN` を返すが、C++ の `std::clamp` は `NaN` を扱えず、境界に `NaN` が混ざっても検出されない（Python と同じ）。`NaN` を返したいなら `std::isnan(v) || std::isnan(lo) || std::isnan(hi)` を先に判定して自分で返す
 - 整数リテラルと `double` 変数を混ぜると（`std::clamp(x, 0, 1.5)`）コンパイルエラーになる。`0.0` と書く
 
 ## Test

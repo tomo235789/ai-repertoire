@@ -12,7 +12,7 @@ TypeScript で「ちょっとしたユーティリティ」を書きたくなっ
 1. `cards/` の frontmatter `tags` と `title` を用途語（日本語・英語どちらでも）で検索する
    - 例: 「重複除去」「dedupe」「chunk」「分割」
 2. 該当カードがあれば、その `## Signature` と `## Contract` に従って既存関数を使う。`## Usage` をそのまま貼れる
-3. 該当がなければ自前実装してよい。ただし同じ形式のカードを `status: draft` で `cards/` に提案する（`../schema/card.schema.json` と `../README.md` の「カードの書き方」を参照）
+3. 該当がなければ自前実装してよい。ただし同じ形式のカードを `status: public` で `cards/` に提案する（PR テンプレートの抽象化チェックリストを通す。`../schema/card.schema.json` と `../README.md` の「カードの書き方」を参照）
 4. `lint/eslint.restricted.js` の禁止パターンに触れたら、message に書かれたカード ID の関数へ置き換える
 
 ## カード一覧

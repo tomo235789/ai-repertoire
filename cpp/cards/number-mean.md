@@ -37,7 +37,7 @@ double mean = std::ranges::fold_left(v, 0.0, std::plus{}) / v.size();
 - 入力を変更しない。`size()` を持つ範囲なら 1 回だけ走査する
 - 合計は左から順の素朴な加算で補正しない。`{0.1, 0.2, 0.3}` の平均は `0.20000000000000004`（TypeScript の `mean` と同じ、Python の `fmean` は `0.19999999999999998`）
 - 要素に `NaN` があれば `NaN`。`inf` と `-inf` を両方含んでも `NaN`
-- `size()` が無いビュー（`views::filter` など）は forward 以上の範囲なら `std::ranges::distance(r)` で数えられるが、走査が 2 回になる。`views::istream | views::filter` のような単一パスの input range は合計を取った時点で消費され、その後の `distance` は `0` を返して平均が壊れる。合計と個数を同じ走査で集計する: `auto [sum, n] = fold_left(r, std::pair{0.0, 0}, [](auto acc, auto x) { return std::pair{acc.first + x, acc.second + 1}; });`
+- `size()` が無いビュー（`views::filter` など）は forward 以上の範囲なら `std::ranges::distance(r)` で数えられるが、走査が 2 回になる。`views::istream | views::filter` のような単一パスの input range は合計を取った時点で消費され、その後の `distance` は `0` を返して平均が壊れる。合計と個数を同じ走査で集計する: `auto [sum, n] = std::ranges::fold_left(r, std::pair{0.0, 0}, [](auto acc, auto x) { return std::pair{acc.first + x, acc.second + 1}; });`
 
 ## Alternatives
 

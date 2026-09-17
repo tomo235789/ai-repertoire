@@ -38,7 +38,7 @@ int main() {
     CHECK(!sem.try_acquire());  // 2 つとも取得中なので 3 つ目は取れない
     release_now.count_down();
   }
-  CHECK(sem.try_acquire());
+  sem.acquire();  // 両方 release 済みなので取得できる（try_acquire は空きがあっても false を返せるので使わない）
   sem.release();
 
   // 8 スレッドを走らせても同時実行数は 2 を超えず、全タスクが完了する
@@ -61,14 +61,15 @@ int main() {
   }
   CHECK(peak <= 2);
   CHECK(done == 8);
-  CHECK(sem.try_acquire());  // 全員 release 済みなので空きがある
+  sem.acquire();  // 全員 release 済みなので空きがある
+  sem.release();
 
-  // try_acquire は待たない
+  // try_acquire は空きが無ければ待たずに false（空きがあるときの成功は規格が保証しないので検証しない）
   std::counting_semaphore<1> one(1);
-  CHECK(one.try_acquire());
+  one.acquire();
   CHECK(!one.try_acquire());
   one.release();
-  CHECK(one.try_acquire());
+  one.acquire();
 
   // try_acquire_for / until は制限時間で諦める
   const auto t0 = std::chrono::steady_clock::now();
@@ -81,9 +82,8 @@ int main() {
   std::counting_semaphore<3> zero(0);
   CHECK(!zero.try_acquire());
   zero.release(3);
-  int acquired = 0;
-  while (zero.try_acquire()) ++acquired;
-  CHECK(acquired == 3);
+  for (int i = 0; i < 3; ++i) zero.acquire();  // 3 回分は待たずに取れる
+  CHECK(!zero.try_acquire());                   // 4 回目は無い
 
   // release で待機中のスレッドが起きる
   std::counting_semaphore<1> gate(0);
@@ -105,7 +105,7 @@ int main() {
   std::binary_semaphore b(0);
   CHECK(!b.try_acquire());
   b.release();
-  CHECK(b.try_acquire());
+  b.acquire();
 
   // コピー・ムーブ不可
   static_assert(!std::is_copy_constructible_v<std::counting_semaphore<2>>);
@@ -119,7 +119,7 @@ int main() {
     throw 1;
   } catch (int) {
   }
-  CHECK(s.try_acquire());
+  s.acquire();  // guard が release 済みなので取得できる
 
   FINISH();
 }

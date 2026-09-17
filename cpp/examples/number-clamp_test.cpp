@@ -37,13 +37,16 @@ int main() {
   // 型を明示すれば int と double を混ぜられる
   CHECK(std::clamp<double>(5, 0.0, 10.0) == 5.0);
 
-  // NaN: v が NaN なら NaN、境界が NaN ならその境界だけ効かない
+  // NaN は std::clamp の比較要件を満たさず未サポート。呼び出し前に std::isnan で弾く方針を検証する
   const double nan = std::nan("");
-  CHECK(std::isnan(std::clamp(nan, 0.0, 1.0)));
-  CHECK(std::clamp(5.0, nan, 1.0) == 1.0);
-  CHECK(std::clamp(-5.0, nan, 1.0) == -5.0);
-  CHECK(std::clamp(5.0, 0.0, nan) == 5.0);
-  CHECK(std::clamp(-5.0, 0.0, nan) == 0.0);
+  auto clamp_or_nan = [](double v, double lo, double hi) -> double {
+    if (std::isnan(v) || std::isnan(lo) || std::isnan(hi)) return std::nan("");
+    return std::clamp(v, lo, hi);
+  };
+  CHECK(std::isnan(clamp_or_nan(nan, 0.0, 1.0)));
+  CHECK(std::isnan(clamp_or_nan(5.0, nan, 1.0)));
+  CHECK(std::isnan(clamp_or_nan(5.0, 0.0, nan)));
+  CHECK(clamp_or_nan(5.0, 0.0, 1.0) == 1.0);
 
   // 比較関数を渡す（greater なら lo >= hi の順）
   CHECK(std::clamp(5, 10, 0, std::greater<int>{}) == 5);

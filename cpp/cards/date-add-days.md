@@ -15,7 +15,7 @@ status: public
 ## Signature
 
 ```cpp
-using std::chrono::sys_days = std::chrono::time_point<std::chrono::system_clock, std::chrono::days>;  // sys_days + days{n} → sys_days
+namespace std::chrono { using sys_days = time_point<system_clock, days>; }  // 標準が std::chrono 内で宣言する別名。sys_days + days{n} → sys_days
 ```
 
 ## Usage

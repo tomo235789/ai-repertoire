@@ -36,7 +36,7 @@ auto vv = v | std::views::slide(3) | std::ranges::to<std::vector<std::vector<int
 
 - 順序を保持する。窓は先頭から 1 つずつずれた開始位置で並び、窓の中も元の並び順
 - 幅 `n` に満たない窓は作らない。範囲の長さが `n` 未満なら空、`n` と等しければ窓 1 つ。窓の数は `max(0, size - n + 1)`（符号なしで `size - n + 1` と書くと `size < n - 1` でアンダーフローする）
-- 遅延評価。ビューは元の範囲への参照だけを持ち、各窓は元の要素を指すビュー（`vector` では `std::span`、forward range では `subrange`）。窓経由で書き込むと元の要素が変わる
+- 遅延評価。左辺値の範囲は `ref_view` で借用し（元の範囲をビューより長く生存させる）、右辺値のコンテナは `owning_view` で所有する。各窓は基底の要素を指すビュー（`vector` では `std::span`、forward range では `subrange`）。窓経由で書き込むと元の要素が変わる
 - 入力を変更しない
 - 元が random_access かつ sized なら結果も random_access / sized で、`size()` と添字が使える。forward 以上の範囲でも走査できる
 - ずらし幅（step）の引数は無い。`slide(n) | views::stride(step)` で組み合わせる

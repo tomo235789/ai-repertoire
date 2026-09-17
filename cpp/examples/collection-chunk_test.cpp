@@ -5,6 +5,7 @@
 #include <span>
 #include <sstream>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "check.hpp"
@@ -82,6 +83,12 @@ int main() {
   std::string s = "abcde";
   auto parts = s | rv::chunk(2) | std::ranges::to<std::vector<std::string>>();
   CHECK(parts == std::vector<std::string>({"ab", "cd", "e"}));
+
+  // 左辺値は ref_view で借用、右辺値のコンテナは owning_view で所有する（一時オブジェクトが消えても走査できる）
+  static_assert(std::is_same_v<decltype(v | rv::chunk(2)), std::ranges::chunk_view<std::ranges::ref_view<std::vector<int>>>>);
+  auto owned = std::vector<int>{1, 2, 3} | rv::chunk(2);
+  static_assert(std::is_same_v<decltype(owned), std::ranges::chunk_view<std::ranges::owning_view<std::vector<int>>>>);
+  CHECK((owned | std::ranges::to<Nested>()) == Nested({{1, 2}, {3}}));
 
   FINISH();
 }
