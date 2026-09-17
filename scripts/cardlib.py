@@ -110,7 +110,8 @@ def _fence_toggle(line: str, open_fence: Optional[str]) -> Optional[str]:
     fence = m.group(1)
     if open_fence is None:
         return fence
-    if fence[0] == open_fence[0] and len(fence) >= len(open_fence):
+    # 閉じフェンスは同じ文字種・開始時以上の長さで、後ろが空白だけの行（```python は閉じない）
+    if fence[0] == open_fence[0] and len(fence) >= len(open_fence) and not line[m.end():].strip():
         return None
     return open_fence
 

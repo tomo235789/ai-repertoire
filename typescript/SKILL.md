@@ -19,6 +19,19 @@ TypeScript で「ちょっとしたユーティリティ」を書きたくなっ
 
 `cards/` 配下。ファイル名 = カード ID。機能別の言語横断リファレンスは生成物 `reference/<id>.md`（GitHub Pages: URL は README 参照）にある。
 
+| 領域 | ID |
+|---|---|
+| collection | chunk, dedup-by-key, group-by, partition, zip, flatten, sort-by, sliding-window, take-while |
+| object | pick, omit, deep-merge, map-values, invert |
+| string | case-convert, pad, truncate, slugify |
+| number | clamp, round-to, sum-by, mean |
+| date | format-iso, add-days, diff-days, start-of-day |
+| function | debounce, throttle, memoize, once, pipe |
+| async | sleep, timeout, retry, limit-concurrency |
+| result | try-to-result |
+
+ID は `<領域>-<動作>` で `cards/<id>.md`（例: `cards/collection-group-by.md`）。
+
 ## 参照先ライブラリ
 
 | 領域 | 既定ライブラリ |
