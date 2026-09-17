@@ -22,7 +22,6 @@ asyncio.sleep(delay, result=None)
 
 ```python
 import asyncio
-
 async def main() -> None:
     await asyncio.sleep(0.5)  # 0.5 秒待つ（他のタスクは動き続ける）
     task = asyncio.create_task(asyncio.sleep(10))
