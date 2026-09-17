@@ -49,10 +49,13 @@ scripts/build_reference.py   言語別カード → reference/ + index.md + llms
 scripts/build_site.sh        GitHub Pages 用 site/ の組み立て
 typescript/                  SKILL.md, cards/, examples/（vitest）, lint/
 python/                      SKILL.md, cards/, examples/（pytest）, lint/ruff.toml
+go/                          SKILL.md, cards/, examples/（go test。samber/lo + stdlib）
+csharp/                      SKILL.md, cards/, examples/（xUnit。LINQ + MoreLINQ）
+react/                       SKILL.md, cards/（パターン粒度、ID は pattern-*）, examples/（vitest + Testing Library）
 .github/workflows/           validate.yml（PR）, publish.yml（main → Pages）
 ```
 
-`go/ csharp/ cpp/ react/ ruby/ rust/ sql/` はカードができてから作る。空の SKILL.md は置かない。
+言語ディレクトリはカードができてから作る。空の SKILL.md は置かない。
 
 ## カードの書き方
 
