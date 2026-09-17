@@ -2,8 +2,9 @@ MIT License
 
 Copyright (c) 2026 tomo235789
 
-このライセンスは *.md 以外のすべてのファイル（scripts/、各言語の examples/・lint/、schema/、
-.github/ のワークフローなど）に適用する。*.md は置き場所を問わず LICENSE-CONTENT（CC BY 4.0）。
+このライセンスは *.md と生成物（reference/、llms.txt）以外のすべてのファイル（scripts/、各言語の
+examples/・lint/、schema/、.github/ のワークフローなど）に適用する。
+*.md（置き場所を問わず）と生成物は LICENSE-CONTENT（CC BY 4.0）。
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

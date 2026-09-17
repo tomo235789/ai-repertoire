@@ -10,10 +10,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# GITHUB_TOKEN の権限は最小にし、Pages 関連はそれを使うジョブにだけ与える
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
@@ -23,6 +22,10 @@ jobs:
   build:
     if: github.repository == 'tomo235789/ai-repertoire'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write     # configure-pages が Pages サイト情報の取得・有効化に使う
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -33,8 +36,8 @@ jobs:
         run: python scripts/validate_cards.py --public-only
       - id: pages
         uses: actions/configure-pages@v5
-      - name: build_reference.py
-        run: python scripts/build_reference.py --base-url "${{ steps.pages.outputs.base_url }}"
+      - name: "build_reference.py（status: public のカードだけを生成対象にする）"
+        run: python scripts/build_reference.py --public-only --base-url "${{ steps.pages.outputs.base_url }}"
       - name: site/ を組み立て
         run: scripts/build_site.sh
       - name: Jekyll で HTML 化（元の .md も残す）
@@ -47,6 +50,9 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

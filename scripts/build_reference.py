@@ -35,6 +35,11 @@ def group_by_id(cards: List[Card]) -> "OrderedDict[str, List[Card]]":
     )
 
 
+def select_public(cards: List[Card]) -> List[Card]:
+    """status: public のカードだけを残す"""
+    return [c for c in cards if c.meta.get("status") == "public"]
+
+
 def _label(lang: str) -> str:
     return LANG_LABEL.get(lang, lang)
 
@@ -152,12 +157,16 @@ def main(argv: List[str] = None) -> int:
     parser.add_argument("--out", type=Path, default=None, help="reference/ の出力先（既定: <root>/reference）")
     parser.add_argument("--llms", type=Path, default=None, help="llms.txt の出力先（既定: <root>/llms.txt）")
     parser.add_argument("--base-url", default="", help="llms.txt のリンクに付ける URL（例: https://<user>.github.io/ai-repertoire）")
+    parser.add_argument("--public-only", action="store_true", help="status: public のカードだけを生成対象にする（公開配信用）")
     args = parser.parse_args(argv)
     root: Path = args.root
     out_dir: Path = args.out or root / "reference"
     llms_path: Path = args.llms or root / "llms.txt"
 
-    groups = group_by_id(load_cards(root))
+    cards = load_cards(root)
+    if args.public_only:
+        cards = select_public(cards)
+    groups = group_by_id(cards)
 
     if out_dir.exists():
         if not is_generated_dir(out_dir):
