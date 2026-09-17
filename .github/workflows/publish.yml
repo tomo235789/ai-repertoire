@@ -1,0 +1,55 @@
+# main への push で reference/ と llms.txt を生成し、GitHub Pages へ配信する。
+# 事前にリポジトリ設定 Settings > Pages > Source を「GitHub Actions」にしておく。
+#
+# 公開ゲート: 公開リポジトリ（tomo235789/ai-repertoire）でしか動かさず、
+# status: public 以外のカードが混ざっていたら配信前に失敗させる（draft / private の流出防止）。
+name: publish
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: github.repository == 'tomo235789/ai-repertoire'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r scripts/requirements.txt
+      - name: "公開ゲート（status: public 以外があれば失敗）"
+        run: python scripts/validate_cards.py --public-only
+      - id: pages
+        uses: actions/configure-pages@v5
+      - name: build_reference.py
+        run: python scripts/build_reference.py --base-url "${{ steps.pages.outputs.base_url }}"
+      - name: site/ を組み立て
+        run: scripts/build_site.sh
+      - name: Jekyll で HTML 化（元の .md も残す）
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./site
+          destination: ./_site
+      - uses: actions/upload-pages-artifact@v3
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tomo235789/ai-repertoire/schema/card.schema.json",
+  "title": "ai-repertoire card frontmatter",
+  "description": "各言語 cards/*.md の frontmatter。人間向け本文は Markdown 側に書く",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "lang", "title", "tags", "lib", "fn", "since", "status"],
+  "properties": {
+    "id": {
+      "description": "言語横断で同一のカード ID。<領域>-<動作>[-<修飾>]",
+      "type": "string",
+      "pattern": "^(collection|object|string|number|date|function|async|result)-[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "lang": {
+      "description": "ディレクトリ名と一致する言語名",
+      "type": "string",
+      "enum": ["typescript", "python", "go", "csharp", "cpp", "react", "ruby", "rust", "sql"]
+    },
+    "title": {
+      "description": "用途を表す日本語タイトル。同じ id の言語間で一致させる",
+      "type": "string",
+      "minLength": 1
+    },
+    "tags": {
+      "description": "用途語。日本語・英語の両方を含める",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "lib": {
+      "description": "ライブラリ名。標準ライブラリなら stdlib。SQL は方言名（postgresql / mysql / sqlite / bigquery など）",
+      "type": "string",
+      "minLength": 1
+    },
+    "fn": {
+      "description": "関数名。SQL は構文名（DISTINCT ON など）",
+      "type": "string",
+      "minLength": 1
+    },
+    "since": {
+      "description": "ライブラリ（stdlib なら言語処理系）の最低バージョン",
+      "type": "string",
+      "minLength": 1
+    },
+    "verified": {
+      "description": "実行して確認した日 (YYYY-MM-DD)。未検証ならキー自体を置かない",
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "preserves_order": {
+      "description": "順序保持するか。順序の概念が無い関数は置かない",
+      "type": "boolean"
+    },
+    "ai_evaluation": {
+      "description": "AI がドキュメント無しで正しく使えたかの記録（任意）",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["model", "with_docs", "result", "date"],
+        "properties": {
+          "model": { "type": "string", "minLength": 1 },
+          "with_docs": { "type": "boolean" },
+          "result": { "type": "string", "enum": ["pass", "fail", "partial"] },
+          "date": { "type": "string", "format": "date", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" }
+        }
+      }
+    },
+    "status": {
+      "description": "公開リポジトリには public のみ置く",
+      "type": "string",
+      "enum": ["draft", "private", "public"]
+    }
+  }
+}

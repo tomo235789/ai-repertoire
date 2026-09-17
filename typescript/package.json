@@ -1,0 +1,15 @@
+{
+  "name": "ai-repertoire-typescript",
+  "version": "0.0.0",
+  "private": true,
+  "description": "ai-repertoire の TypeScript カードに対応する検証用テスト",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "es-toolkit": "^1.52.0",
+    "typescript": "^5.9.0",
+    "vitest": "^5.0.1"
+  }
+}
