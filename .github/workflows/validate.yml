@@ -105,9 +105,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: g++（cpp/examples が無ければスキップ）
+      - name: g++-14（cpp/examples が無ければスキップ。std::ranges::to は GCC 14 以降）
         run: |
-          if [ -d cpp/examples ]; then cpp/run_tests.sh; else echo "cpp/examples が無いためスキップ"; fi
+          if [ -d cpp/examples ]; then
+            sudo apt-get update -qq && sudo apt-get install -y -qq g++-14
+            CXX=g++-14 cpp/run_tests.sh
+          else
+            echo "cpp/examples が無いためスキップ"
+          fi
 
   ruby:
     name: ruby/examples (minitest)

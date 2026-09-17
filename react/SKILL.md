@@ -11,7 +11,7 @@ React で「この処理はどう書くのが正しいか」に迷ったら、�
 
 1. `cards/` の frontmatter `tags` と `title` を用途語（日本語・英語どちらでも）で検索する
 2. 該当カードがあれば、その `## Signature`（コンポーネント / フックの形）と `## Contract`（レンダーと副作用の保証）に従う。`## Usage` をそのまま貼れる
-3. 該当がなければ自前実装してよい。ただし同じ形式のカードを `status: draft` で `cards/` に提案する（`../schema/card.schema.json` と `../README.md` の「カードの書き方」を参照）
+3. 該当がなければ自前実装してよい。ただし同じ形式のカードを `status: public` で `cards/` に提案する（PR テンプレートの抽象化チェックリストを通す。`../schema/card.schema.json` と `../README.md` の「カードの書き方」を参照）
 
 ## 前提
 

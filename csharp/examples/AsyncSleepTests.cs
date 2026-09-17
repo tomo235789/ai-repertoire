@@ -16,9 +16,14 @@ public class AsyncSleepTests
     [Fact(DisplayName = "待っている間はスレッドを占有せず、複数の待機が並行して進む")]
     public async Task DoesNotBlockOtherWork()
     {
-        var sw = Stopwatch.StartNew();
-        await Task.WhenAll(Task.Delay(20), Task.Delay(20), Task.Delay(20));
-        Assert.True(sw.ElapsedMilliseconds < 55, $"elapsed {sw.ElapsedMilliseconds}ms");
+        // 実時間の上限で判定すると CI ランナーの負荷で落ちるので、
+        // 「呼び出し直後は未完了（ブロックしない）」と「短い待機が長い待機より先に終わる」で検証する
+        var longer = Task.Delay(500);
+        var shorter = Task.Delay(10);
+        Assert.False(longer.IsCompleted);
+        await shorter;
+        Assert.False(longer.IsCompleted);  // 直列に待っていたらここで完了しているはず
+        await longer;
     }
 
     [Fact(DisplayName = "キャンセルすると TaskCanceledException で打ち切られ、元のトークンが分かる")]
