@@ -24,8 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pages: write     # configure-pages が Pages サイト情報の取得・有効化に使う
-      id-token: write
+      pages: read      # configure-pages が Pages サイト情報の取得に使う（書き込みは deploy ジョブだけ）
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
