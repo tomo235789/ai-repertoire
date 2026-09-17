@@ -33,11 +33,13 @@ def test_returns_one_of_the_arguments_without_conversion():
 
 
 def test_nan_handling():
-    """x が NaN なら NaN。lo / hi が NaN ならその境界が効かず x が返る"""
+    """x が NaN なら NaN。lo / hi の片方が NaN ならその境界だけが効かず、もう片方は効く"""
     assert math.isnan(clamp(math.nan, 0, 100))
     assert clamp(50, math.nan, 100) == 50
     assert clamp(-5, math.nan, 100) == -5
+    assert clamp(200, math.nan, 100) == 100  # hi は効く
     assert clamp(200, 0, math.nan) == 200
+    assert clamp(-5, 0, math.nan) == 0  # lo は効く
 
 
 def test_does_not_mutate_arguments():

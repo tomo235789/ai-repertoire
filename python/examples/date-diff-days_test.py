@@ -81,8 +81,8 @@ def test_adding_timedelta_is_the_inverse() -> None:
     assert LATER.date() - timedelta(days=1) == EARLIER.date()
 
 
-def test_aware_datetimes_compare_in_their_own_zones() -> None:
-    """別ゾーンの aware は各自のローカル日付で比べる。揃えるなら astimezone してから。"""
+def test_aware_compare_by_instant_but_dates_are_local() -> None:
+    """aware 同士の比較（<）は実時刻で行われる。.date() にすると各自のローカル日付になるので、揃えるなら astimezone してから。"""
     jst = datetime(2024, 3, 1, 0, 30, tzinfo=JST)
     utc = datetime(2024, 2, 29, 20, 0, tzinfo=timezone.utc)
     assert jst < utc

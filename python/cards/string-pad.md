@@ -34,7 +34,7 @@ str.center(width[, fillchar])
 - 余りが奇数のとき、1 文字多く付く側は `width` の偶奇で決まる。`width` が偶数なら右（`"abc".center(4)` → `'abc '`）、奇数なら左（`"ab".center(5)` → `'  ab '`）
 - `width` が `len(s)` 以下（`0`、負数を含む）なら元の文字列をそのまま返す。切り詰めない
 - 空文字を渡すと `fillchar` だけで `width` を埋める
-- `fillchar` は 1 文字ちょうどでなければ `TypeError`（空文字・2 文字以上は不可）。`width` が `int` でなければ `TypeError`
+- `fillchar` は 1 文字ちょうどでなければ `TypeError`（空文字・2 文字以上は不可）。`width` は `__index__` を持つ値（`int` など）。`float` や `str` は `TypeError`
 - 長さはコードポイントで数える。単一コードポイントの絵文字は 1 だが、ZWJ で結合した絵文字列や肌色修飾子付きは複数。結合文字（`e` + U+0301）は 2 と数える。全角文字も 1
 - 純粋関数
 

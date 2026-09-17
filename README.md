@@ -71,6 +71,7 @@ python/                      SKILL.md, cards/, examples/（pytest）, lint/ruff.
 
 ```sh
 pip install -r scripts/requirements.txt
+pip install -r python/requirements.txt   # python/examples のテスト（pytest, ruff, 依存ライブラリ）
 make validate      # カード検証
 make build         # reference/ と llms.txt を生成
 make site          # Pages 用 site/ を組み立て

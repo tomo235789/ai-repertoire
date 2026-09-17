@@ -38,7 +38,7 @@ merge({}, defaults, overrides)
 - `sources` から新しく取り込まれる値は `deepcopy` されて入る。ただし `destination` が既に `sources` と同じオブジェクトを参照している場合はその参照が残るので、「返り値と `sources` が参照を共有しない」保証は新規に取り込まれた値に限る
 - `sources` の値が `None` でも上書きする
 - 返り値のキー順は `destination` の順の後に、`sources` で新たに現れたキーがその順で並ぶ
-- `strategy=Strategy.ADDITIVE` では同じキーの `list` / `tuple` / `set` を連結する。スカラーは置き換える
+- `strategy=Strategy.ADDITIVE` では同じキーの値が **同じ型** の追加可能コレクション（`list` 同士、`tuple` 同士、`set` 同士、`Counter` 同士）のときだけ連結し、型が違えば（`list` と `tuple` など）`REPLACE` と同じく置き換える。スカラーは置き換える
 - `strategy=Strategy.TYPESAFE_REPLACE` / `TYPESAFE_ADDITIVE` では、再帰マージされない値（両方が `Mapping` ではない場合）の型が異なると `TypeError` を投げる。`dict` と `defaultdict` のように両方 `Mapping` なら具象型が違っても再帰マージされる。既定の `REPLACE` は例外を投げない
 
 ## Alternatives

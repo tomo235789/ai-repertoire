@@ -34,7 +34,7 @@ excluded = {"password", "token"}
 - 残ったキーの順序は元の辞書のまま
 - 存在しないキーを `excluded` に入れても無視される
 - すべてのキーを除くと `{}`。`excluded` が空なら元と同じ内容の別オブジェクト
-- 例外は投げない
+- `excluded` がメンバーシップ判定（`in`）をサポートする限り例外は投げない（`None` を渡すと `TypeError`）
 
 ## Alternatives
 

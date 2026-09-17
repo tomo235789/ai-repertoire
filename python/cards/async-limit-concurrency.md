@@ -24,13 +24,12 @@ asyncio.Semaphore(value=1)
 import asyncio
 
 sem = asyncio.Semaphore(2)  # 同時に 2 つまで
-
 async def fetch_limited(item_id: int) -> dict:
     async with sem:  # 空きが出るまで待ち、ブロックを抜けるときに必ず解放する
         return await fetch_json(f"/api/items/{item_id}")
-
-results = await asyncio.gather(*(fetch_limited(i) for i in range(1, 5)))
-# => 常に 2 件以下しか同時に fetch されない
+async def main() -> list[dict]:
+    return await asyncio.gather(*(fetch_limited(i) for i in range(1, 5)))
+asyncio.run(main())  # => 常に 2 件以下しか同時に fetch されない
 ```
 
 ## Contract

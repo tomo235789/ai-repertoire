@@ -42,7 +42,7 @@ list(takewhile(lambda x: x < 3, [1, 2, 3, 4, 1]))
 ## Alternatives
 
 - 先頭の条件を満たす部分を **捨てて** 残りが欲しいなら `itertools.dropwhile`。同じリストに両方を使えば連結が元に戻る
-- 打ち切った要素を失いたくないなら `more_itertools.before_and_after(predicate, it)`（真の部分と残り全部の 2 つを返す）
+- 打ち切った要素を失いたくないなら `more_itertools.before_and_after(predicate, it)`（真の部分と残り全部の 2 つを返す。**`head` を先に使い切ってから `rest` を読む**。順序を守らないと `rest` が正しく出ない）
 - 位置に関係なく条件を満たす要素を集めるなら `filter`
 - 先頭から個数で取るなら `itertools.islice(it, n)`
 

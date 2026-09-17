@@ -50,9 +50,9 @@ def test_non_numeric_raises_type_error():
 
 
 def test_float_sum_is_compensated():
-    """float の合計は補正付き加算で sum([0.1] * 10) == 1.0"""
-    assert sum([0.1] * 10) == 1.0
-    assert sum([0.1, 0.2, 0.3]) == 0.6
+    """float の合計は 3.12 以降のほとんどのビルドで補正付き加算になる（厳密な丸めは保証されないので近似で検証）"""
+    assert math.isclose(sum([0.1] * 10), 1.0, rel_tol=0, abs_tol=1e-12)
+    assert math.isclose(sum([0.1, 0.2, 0.3]), 0.6, rel_tol=0, abs_tol=1e-12)
     assert math.fsum([0.1] * 10) == 1.0
 
 

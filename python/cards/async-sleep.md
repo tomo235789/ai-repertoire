@@ -25,11 +25,12 @@ import asyncio
 
 async def main() -> None:
     await asyncio.sleep(0.5)  # 0.5 秒待つ（他のタスクは動き続ける）
-    value = await asyncio.sleep(0, result="done")  # => 'done'
     task = asyncio.create_task(asyncio.sleep(10))
     task.cancel()
-    await task  # => asyncio.CancelledError
-
+    try:
+        await task
+    except asyncio.CancelledError:
+        print("cancelled")  # キャンセルは CancelledError として伝播する
 asyncio.run(main())
 ```
 

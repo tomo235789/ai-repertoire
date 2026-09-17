@@ -55,7 +55,7 @@ async def fetch_items() -> list[dict]:
 - es-toolkit の `retry` は最後のエラーをそのまま投げるが、tenacity は既定で `RetryError` に包む。`except ConnectionError` で捕まえたいなら `reraise=True` を付ける
 - `stop` を省略すると無限に再試行する。必ず `stop_after_attempt` か `stop_after_delay` を付ける
 - `stop_after_attempt(3)` は「3 回再試行」ではなく「合計 3 回」。es-toolkit の `retries: 3`（合計 4 回）とは数え方が違う
-- 冪等でない処理（送金・投稿）を再試行すると二重実行になる。`retry=` で送信前の例外だけに限定する
+- 冪等でない処理（送金・投稿）を再試行すると二重実行になり得る。`retry=` は失敗した試行の例外を分類するだけで、送信先が要求を受理したかは判定できない（送信後の切断やタイムアウトでも再試行してしまう）。冪等キーや操作 ID で重複を検出できる場合だけ再試行する
 - 同期関数に付けた場合の `wait` は `time.sleep` で待つ。非同期コードから同期の装飾済み関数を呼ぶとイベントループが止まる
 
 ## Test

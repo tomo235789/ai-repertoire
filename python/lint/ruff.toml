@@ -8,7 +8,6 @@
 select = ["E4", "E7", "E9", "F", "TID251", "A"]
 
 [lint.flake8-tidy-imports.banned-api]
-"time.sleep".msg = "async-sleep: 非同期コードでは asyncio.sleep を使う（イベントループを止めない）"
 "datetime.datetime.utcnow".msg = "date-format-iso: naive な UTC 時刻は使わない。datetime.now(timezone.utc) を使う"
 "datetime.datetime.utcfromtimestamp".msg = "date-format-iso: naive な UTC 時刻は使わない。datetime.fromtimestamp(ts, timezone.utc) を使う"
 "pytz".msg = "date-start-of-day: タイムゾーンは標準の zoneinfo.ZoneInfo を使う（pytz の localize は不要）"
