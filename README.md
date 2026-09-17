@@ -52,6 +52,7 @@ python/                      SKILL.md, cards/, examples/（pytest）, lint/ruff.
 go/                          SKILL.md, cards/, examples/（go test。samber/lo + stdlib）
 csharp/                      SKILL.md, cards/, examples/（xUnit。LINQ + MoreLINQ）
 react/                       SKILL.md, cards/（パターン粒度、ID は pattern-*）, examples/（vitest + Testing Library）
+cpp/                         SKILL.md, cards/, examples/（g++-14 -std=c++23、std::ranges）
 .github/workflows/           validate.yml（PR）, publish.yml（main → Pages）
 ```
 
