@@ -8,6 +8,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "date-fns": "^4.4.0",
     "es-toolkit": "^1.52.0",
     "typescript": "^5.9.0",
     "vitest": "^5.0.1"
