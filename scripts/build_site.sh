@@ -40,6 +40,9 @@ for md in Path(sys.argv[1]).rglob("*.md"):
         head, body = text[: end + 5], text[end + 5 :]
     else:
         head, body = "", text
+    if "{% endraw %}" in body or "{%endraw%}" in body:
+        # 本文に閉じタグそのものがあると raw ブロックが途中で終わり Liquid が再び有効になる
+        sys.exit(f"{md}: 本文に {{% endraw %}} を含む Markdown は配信できない")
     md.write_text(head + "{% raw %}\n" + body.rstrip("\n") + "\n{% endraw %}\n", encoding="utf-8")
 PY
 
