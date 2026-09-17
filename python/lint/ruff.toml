@@ -1,0 +1,13 @@
+# ai-repertoire: 自前実装しがちな API や誤用しやすい API を禁止し、カードの関数へ誘導する ruff 設定。
+# 利用側の pyproject.toml / ruff.toml から `extend = ".claude/skills/py-repertoire/lint/ruff.toml"` で取り込む。
+# 各 msg の先頭にカード ID を書く。
+
+[lint]
+# ruff のバージョンで既定ルールが変わっても結果が変わらないよう、対象ルールを明示する
+# E4/E7/E9/F: pyflakes と主要な pycodestyle、TID251: banned-api、A: flake8-builtins
+select = ["E4", "E7", "E9", "F", "TID251", "A"]
+
+[lint.flake8-tidy-imports.banned-api]
+"datetime.datetime.utcnow".msg = "date-format-iso: naive な UTC 時刻は使わない。datetime.now(timezone.utc) を使う"
+"datetime.datetime.utcfromtimestamp".msg = "date-format-iso: naive な UTC 時刻は使わない。datetime.fromtimestamp(ts, timezone.utc) を使う"
+"pytz".msg = "date-start-of-day: タイムゾーンは標準の zoneinfo.ZoneInfo を使う（pytz の localize は不要）"

@@ -24,7 +24,7 @@ test-ts:
 	cd typescript && npm test
 
 test-py:
-	@if [ -d python/examples ]; then cd python && pytest; else echo "python/examples が無いためスキップ"; fi
+	@if [ -d python/examples ]; then ruff check --config python/lint/ruff.toml python/examples && cd python && pytest -q; else echo "python/examples が無いためスキップ"; fi
 
 clean:
 	rm -rf reference llms.txt site _site

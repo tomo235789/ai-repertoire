@@ -48,7 +48,7 @@ scripts/validate_cards.py    PR で走る検証（schema・見出し・ID 整合
 scripts/build_reference.py   言語別カード → reference/ + index.md + llms.txt
 scripts/build_site.sh        GitHub Pages 用 site/ の組み立て
 typescript/                  SKILL.md, cards/, examples/（vitest）, lint/
-python/                      追加予定（同構造、pytest + ruff）
+python/                      SKILL.md, cards/, examples/（pytest）, lint/ruff.toml
 .github/workflows/           validate.yml（PR）, publish.yml（main → Pages）
 ```
 
@@ -71,6 +71,7 @@ python/                      追加予定（同構造、pytest + ruff）
 
 ```sh
 pip install -r scripts/requirements.txt
+pip install -r python/requirements.txt   # python/examples のテスト（pytest, ruff, 依存ライブラリ）
 make validate      # カード検証
 make build         # reference/ と llms.txt を生成
 make site          # Pages 用 site/ を組み立て

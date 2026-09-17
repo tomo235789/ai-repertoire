@@ -50,11 +50,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: pytest（python/examples が無ければスキップ）
+      - name: pytest と ruff（python/examples が無ければスキップ）
         run: |
           if [ -d python/examples ]; then
             pip install -r python/requirements.txt
-            cd python && pytest
+            ruff check --config python/lint/ruff.toml python/examples
+            cd python && pytest -q
           else
             echo "python/examples が無いためスキップ"
           fi
