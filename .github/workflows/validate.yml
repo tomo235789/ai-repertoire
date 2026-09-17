@@ -59,3 +59,87 @@ jobs:
           else
             echo "python/examples が無いためスキップ"
           fi
+
+  go:
+    name: go/examples (go test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache-dependency-path: go/go.sum
+      - name: go test（go/examples が無ければスキップ）
+        run: |
+          if [ -d go/examples ]; then cd go && go vet ./... && go test ./...; else echo "go/examples が無いためスキップ"; fi
+
+  csharp:
+    name: csharp/examples (dotnet test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: dotnet test（csharp/examples が無ければスキップ）
+        run: |
+          if [ -d csharp/examples ]; then cd csharp/examples && dotnet test --nologo; else echo "csharp/examples が無いためスキップ"; fi
+
+  react:
+    name: react/examples (vitest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: react
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: vitest（react/examples が無ければスキップ）
+        run: |
+          if [ -d examples ]; then npm ci && npm run typecheck && npm test; else echo "react/examples が無いためスキップ"; fi
+
+  cpp:
+    name: cpp/examples (g++ -std=c++23)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: g++（cpp/examples が無ければスキップ）
+        run: |
+          if [ -d cpp/examples ]; then cpp/run_tests.sh; else echo "cpp/examples が無いためスキップ"; fi
+
+  ruby:
+    name: ruby/examples (minitest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+      - name: minitest（ruby/examples が無ければスキップ）
+        run: |
+          if [ -d ruby/examples ]; then ruby/run_tests.sh; else echo "ruby/examples が無いためスキップ"; fi
+
+  rust:
+    name: rust/tests (cargo test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: cargo test（rust/tests が無ければスキップ）
+        run: |
+          if [ -d rust/tests ]; then cd rust && cargo test --quiet; else echo "rust/tests が無いためスキップ"; fi
+
+  sql:
+    name: sql/examples (pytest, sqlite + duckdb)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: pytest（sql/examples が無ければスキップ）
+        run: |
+          if [ -d sql/examples ]; then pip install -r sql/requirements.txt && cd sql && pytest -q; else echo "sql/examples が無いためスキップ"; fi
+

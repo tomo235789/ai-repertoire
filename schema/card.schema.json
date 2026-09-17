@@ -10,7 +10,7 @@
     "id": {
       "description": "言語横断で同一のカード ID。<領域>-<動作>[-<修飾>]",
       "type": "string",
-      "pattern": "^(collection|object|string|number|date|function|async|result)-[a-z0-9]+(-[a-z0-9]+)*$"
+      "pattern": "^(collection|object|string|number|date|function|async|result|pattern)-[a-z0-9]+(-[a-z0-9]+)*$"
     },
     "lang": {
       "description": "ディレクトリ名と一致する言語名",
