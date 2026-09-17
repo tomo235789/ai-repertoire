@@ -26,6 +26,23 @@ for lang in typescript python go csharp cpp react ruby rust sql; do
   fi
 done
 
+# Liquid を無効化: カードのコード（Go の {{1, 2}} や JSX）を Liquid の変数・タグと誤認して
+# ビルドが落ちるため、各 Markdown の本文を {% raw %} 〜 {% endraw %} で包む（frontmatter は残す）
+python3 - "$SITE" <<'PY'
+import sys
+from pathlib import Path
+for md in Path(sys.argv[1]).rglob("*.md"):
+    text = md.read_text(encoding="utf-8")
+    if text.startswith("---\n"):
+        end = text.find("\n---\n", 4)
+        if end < 0:
+            continue
+        head, body = text[: end + 5], text[end + 5 :]
+    else:
+        head, body = "", text
+    md.write_text(head + "{% raw %}\n" + body.rstrip("\n") + "\n{% endraw %}\n", encoding="utf-8")
+PY
+
 # Jekyll（github-pages gem）の設定。frontmatter の無い .md も HTML 化し、元の .md も残す（llms.txt から参照するため）
 {
   echo "$MARKER"
