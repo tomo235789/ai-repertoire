@@ -34,7 +34,7 @@ truncate(text, { length: 20, omission: '…' });  // => 'The quick brown fox…'
 - `length`（既定 30）は **省略記号を含めた** 結果の最大長。結果は先頭 `length - omission.length` 文字 + `omission`
 - 文字列の長さが `length` 以下なら変更せずに返す
 - 切り詰めが必要（文字列の長さが `length` より大きい）なとき、文字列の長さが `omission`（既定 `'...'`）の長さ以下、または `length` が `omission` より短いなら `omission` だけを返す。この場合、結果は `length` を超えうる（`truncate('A', { length: 2 })` は切り詰め不要なので `'A'`）
-- `separator`（文字列または RegExp）を指定すると、切り詰め位置より手前にある最後の `separator` の直前で切る。見つからなければ `separator` 無しと同じ
+- `separator`（文字列または RegExp）を指定すると、切り詰め位置より手前にある最後の `separator` の直前で切る。見つからなければ `separator` 無しと同じ。**文字列はエスケープされずに正規表現へ埋め込まれる** ので、`'*'` や `'.'` のようなメタ文字は `SyntaxError` になるか意図しない一致をする。リテラルとして使うならエスケープ済みの `RegExp` を渡す
 - サロゲートペアや結合文字を含む文字列はコードポイント単位で数え、含まなければ UTF-16 コード単位で数える
 - `length` が 0 以下なら 0 扱い。`string` が `undefined` なら `''` を返す。例外を投げない
 - 純粋関数

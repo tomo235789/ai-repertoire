@@ -49,4 +49,8 @@ describe('string-truncate: truncate', () => {
   it('同じ入力には同じ結果を返す', () => {
     expect(truncate(text, { length: 12 })).toBe(truncate(text, { length: 12 }));
   });
+  it('文字列の separator は正規表現として解釈され、メタ文字は SyntaxError になる', () => {
+    expect(() => truncate('a*b*c*d', { length: 5, separator: '*' })).toThrow(SyntaxError);
+    expect(truncate('a*b*c*d', { length: 5, separator: /\*/ })).toBe('a...');
+  });
 });

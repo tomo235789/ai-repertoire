@@ -27,7 +27,7 @@ const [err, parsed] = attempt(() => JSON.parse('{"ok":true}'));
 // => err: null, parsed: { ok: true }
 const [err2, parsed2] = attempt(() => JSON.parse('{oops'));
 // => err2: SyntaxError, parsed2: null
-if (err2 === null) console.log(parsed2); // 型は絞り込まれる
+if (err2 === null) console.log(parsed2); // 失敗側は [E, null] で E に null を含み得るため、型は自動では絞り込まれない
 ```
 
 ## Contract

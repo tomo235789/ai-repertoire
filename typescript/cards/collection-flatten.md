@@ -5,7 +5,7 @@ title: ネストした配列を指定の深さまで平坦化する
 tags: [平坦化, フラット化, ネスト解除, flatten, flat, nested, depth]
 lib: es-toolkit
 fn: flatten
-since: "1.0.0"
+since: "1.9.0"
 verified: 2026-09-17
 preserves_order: true
 status: public

@@ -5,7 +5,7 @@ title: Promise に制限時間を設ける
 tags: [タイムアウト, 制限時間, 打ち切り, 時間切れ, timeout, deadline, time-limit]
 lib: es-toolkit
 fn: withTimeout
-since: "1.48.0"
+since: "1.24.0"
 verified: 2026-09-17
 status: public
 ---
@@ -35,7 +35,7 @@ try {
 ## Contract
 
 - `run` は `withTimeout` の呼び出し時に同期的に 1 回だけ呼ばれる。`ms` 以内に resolve すればその値で resolve する
-- `ms` 経過までに `run()` が決着しなければ `TimeoutError`（es-toolkit が export するクラス、`DOMException` のサブクラス）で reject する
+- `ms` 経過までに `run()` が決着しなければ `TimeoutError`（es-toolkit が export するクラス。実行環境に `DOMException` があればそのサブクラス、無ければ `Error` のサブクラス）で reject する。`{ signal }` オプションは 1.48.0 以降
 - タイムアウトしても `run()` が返した元の `Promise` は止まらない。処理は裏で最後まで走り、結果は捨てられる
 - `run()` が reject した場合はそのエラーがそのまま伝わる
 - `signal` が abort されるとタイムアウト側のタイマーだけが止まり、`run()` の決着を待つ。呼び出し時点で既に abort 済みならタイムアウトは働かない
@@ -49,7 +49,7 @@ try {
 
 ## Pitfalls
 
-- `TimeoutError` の `name` は `'Error'`（`DOMException` の既定名）。`AbortSignal.timeout()` が投げる `DOMException`（`name` が `'TimeoutError'`）とは別物なので、判定は `instanceof TimeoutError` で行う
+- `TimeoutError` の `name` は `'Error'`。`AbortSignal.timeout()` が投げる `DOMException`（`name` が `'TimeoutError'`）とは別物で、`instanceof DOMException` も環境依存なので、判定は `instanceof TimeoutError` で行う
 - 元の処理はキャンセルされないので、副作用のある処理（書き込み・送金など）に付けると「タイムアウトしたのに完了している」状態が起こり得る
 - `run` には `Promise` ではなく **`Promise` を返す関数** を渡す。`withTimeout(fetchJson(...), ms)` は型エラー
 

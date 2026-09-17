@@ -52,7 +52,7 @@ await Promise.all([1, 2, 3, 4].map(fetchLimited));
 
 - `release()` を忘れると空きが戻らず、以後の `acquire()` は永久に待ち続ける。必ず `try { ... } finally { sem.release() }` で囲む
 - `acquire()` せずに `release()` を余計に呼んでも例外は出ず、静かに無視される。呼び出しの対応が崩れていても気づきにくい
-- 待機中の `acquire()` を外から取り消す手段は無い。制限時間が要るなら `withTimeout`（カード async-timeout）で包み、タイムアウト後に permit を取得してしまわないよう注意する
+- `acquire()` に制限時間を付けたい場合、`withTimeout(() => pending, ms)` は reject しても `pending` を取り消さないので、後から permit が渡されて誰も `release()` しない状態になり得る。失敗時は `pending.then(() => sem.release())` で補償し、成功時は `finally` で `release()` する
 - `limitAsync` と違い、`Semaphore` は制限だけでキューの順序保証以外の面倒（結果の収集・エラー処理）は見ない
 
 ## Test

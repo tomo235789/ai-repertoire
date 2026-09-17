@@ -41,7 +41,7 @@ a === b; // => true
 
 - 引数ごとに結果を使い回したいなら `memoize`（カード function-memoize）
 - 非同期の初期化を 1 回にしたいなら、`Promise` を返す関数を `once` で包む（1 回目の `Promise` がそのまま共有される）
-- lodash からの移行は `es-toolkit/compat` の `once`（挙動は同じ）
+- lodash からの移行は `es-toolkit/compat` の `once` もあるが、内部で本体の `once` を呼ぶため `this` は転送されない（lodash は転送する）。`this` を読むメソッドを包む場合は `bind` してから渡す
 
 ## Pitfalls
 
