@@ -1,0 +1,60 @@
+# PR とmain への push で走る検証。
+# 公開リポジトリ（tomo235789/ai-repertoire）では status: public 以外のカードを失敗にする。
+name: validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  cards:
+    name: カード検証と生成
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r scripts/requirements.txt
+      - name: validate_cards.py
+        run: python scripts/validate_cards.py ${{ github.repository == 'tomo235789/ai-repertoire' && '--public-only' || '' }}
+      - name: build_reference.py（生成が壊れていないことを確認）
+        run: python scripts/build_reference.py
+
+  typescript:
+    name: typescript/examples (vitest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: typescript
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: typescript/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
+  python:
+    name: python/examples (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: pytest（python/examples が無ければスキップ）
+        run: |
+          if [ -d python/examples ]; then
+            pip install -r python/requirements.txt
+            cd python && pytest
+          else
+            echo "python/examples が無いためスキップ"
+          fi

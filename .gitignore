@@ -1,0 +1,12 @@
+# 生成物（CI で build_reference.py が作る）
+reference/
+llms.txt
+site/
+_site/
+
+# 依存・キャッシュ
+node_modules/
+__pycache__/
+.pytest_cache/
+.venv/
+.DS_Store
