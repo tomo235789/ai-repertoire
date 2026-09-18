@@ -34,7 +34,7 @@ compute.urlMaps().insert(project="my-project", body=cfg["url_map"]).execute()
 - `http_redirect` で平文のアクセスを HTTPS へ 301 で寄せる
 - TLS ポリシーは `MODERN` プロファイルの TLS 1.2 以上
 - 証明書はマネージド。ドメインは重複を除いて名前順に並ぶ
-- 各リソースは名前で繋がる。URL マップはバックエンドバケット、プロキシは URL マップと証明書、転送ルールはプロキシを指す
+- リソース間の参照は `global/backendBuckets/<name>` のような部分 URL。裸の名前では Compute Engine が解決できない
 - HTTP から HTTPS へ寄せる側も、URL マップ・プロキシ・ポート 80 の転送ルールの 3 つを返す。URL マップだけでは受け口が無い
 - `cacheKeyPolicy` は空。クエリ文字列でもヘッダーでもキャッシュを分けない
 - `ValueError`: 名前やバケット名やドメインの形式違い、ドメインが空、未知のキャッシュモード、上限が既定未満、ブラウザ側の保持が既定超

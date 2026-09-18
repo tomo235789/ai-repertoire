@@ -6,8 +6,12 @@ MQL / PromQL のクエリは組み立てるだけで実行しない。API も呼
 
 from __future__ import annotations
 
+import re
+
 _ALIGNMENT_SECONDS = (60, 300, 600, 900, 1800, 3600)
 _COMBINERS = ("OR", "AND", "AND_WITH_MATCHING_RESOURCE")
+# MQL に単一引用符で埋め込むので、引用符や改行を含む値は受け付けない
+_SERVICE_NAME_RE = re.compile(r"^[a-z]([-a-z0-9]{0,47}[a-z0-9])?$")
 
 
 def error_rate_alert(
@@ -39,13 +43,17 @@ def error_rate_alert(
         alertPolicies.create に渡せる AlertPolicy dict
 
     Raises:
-        ValueError: 表示名やサービス名が空、通知チャネルが空、
+        ValueError: 表示名が空、サービス名が Cloud Run の命名規則から外れる、
+            通知チャネルが空、
             しきい値や刻みや件数が範囲外、未知の combiner の場合
     """
     if not display_name:
         raise ValueError("display_name は空にできない")
-    if not service_name:
-        raise ValueError("service_name は空にできない")
+    if not _SERVICE_NAME_RE.match(service_name):
+        raise ValueError(
+            "service_name は英小文字・数字・ハイフンで 1〜49 文字。"
+            f"クエリに引用符や改行を混ぜられない: {service_name!r}"
+        )
     channels = tuple(notification_channels)
     if not channels:
         raise ValueError("notification_channels は 1 件以上必要。発報しても誰も気付かない")

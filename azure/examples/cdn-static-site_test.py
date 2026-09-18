@@ -69,14 +69,22 @@ def test_html_cached_shorter_than_assets():
     assert rules["asset-long-cache"]["cache_duration_seconds"] == 86400
 
 
+CUSTOM_DOMAIN = (
+    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg"
+    "/providers/Microsoft.Cdn/profiles/example-fd/customDomains/www-example-com"
+)
+
+
 def test_custom_domain_disables_default_domain():
-    """独自ドメインを付けたら既定ドメインへの紐付けは外す"""
+    """独自ドメインは ARM リソース ID で参照し、既定ドメインへの紐付けは外す"""
     cfg = _cfg()
     assert cfg["route"]["linkToDefaultDomain"] == "Enabled"
     assert "customDomains" not in cfg["route"]
-    cfg = _cfg(custom_domain="www.example.com")
+    cfg = _cfg(custom_domain_id=CUSTOM_DOMAIN)
     assert cfg["route"]["linkToDefaultDomain"] == "Disabled"
-    assert cfg["route"]["customDomains"] == [{"hostName": "www.example.com"}]
+    assert cfg["route"]["customDomains"] == [{"id": CUSTOM_DOMAIN}]
+    with pytest.raises(ValueError, match="独自ドメイン"):
+        _cfg(custom_domain_id="www.example.com")
 
 
 def test_compression_can_be_disabled():
@@ -101,8 +109,6 @@ def test_invalid_inputs():
     """ホスト名とキャッシュ秒数の不正は ValueError"""
     with pytest.raises(ValueError):
         _cfg2("Example Storage")
-    with pytest.raises(ValueError):
-        _cfg(custom_domain="www_example_com")
     with pytest.raises(ValueError):
         _cfg(cache_seconds=-1)
 

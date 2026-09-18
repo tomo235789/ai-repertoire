@@ -15,18 +15,20 @@ status: public
 ## Signature
 
 ```python
-def read_only_policy(bindings: dict[str, list[str]], *, etag: str | None = None, condition_expression: str | None = None, condition_title: str = '') -> dict
+def read_only_policy(bindings: dict[str, list[str]], *, etag: str | None = None, condition_expression: str | None = None, condition_title: str = '', allow_custom_roles: bool = False) -> dict
 ```
 
 ## Usage
 
 ```python
 current = bucket.get_iam_policy(requested_policy_version=3)
-policy = read_only_policy(
+addition = read_only_policy(
     {"roles/storage.objectViewer": ["serviceAccount:app@my-project.iam.gserviceaccount.com"]},
     etag=current.etag,
 )
-bucket.set_iam_policy(policy)
+for b in addition["bindings"]:                  # 全置換ではなく既存に足す
+    current[b["role"]] = set(current.get(b["role"], [])) | set(b["members"])
+bucket.set_iam_policy(current)
 ```
 
 ## Contract
@@ -35,8 +37,8 @@ bucket.set_iam_policy(policy)
 - バインディングはロール名順、メンバーは重複を除いて名前順に並ぶ
 - `etag` は渡したときだけ入る
 - 条件を付けるときは式と名前の両方が要る。片方だけだと `ValueError`。条件は全バインディングに付く
-- `ValueError`: バインディングが空、メンバーが空、ロールやメンバーの形式違い、`allUsers` / `allAuthenticatedUsers`、`roles/editor` などの広いロール、閲覧者でない事前定義ロール
-- カスタムロール（`projects/<id>/roles/...`）は名前で判断せずそのまま通す。中身が読み取り専用かは検証しないので、呼び出し側が `iam-least-privilege-role` で作ったものだけを渡す
+- `ValueError`: バインディングが空、メンバーが空、ロールやメンバーの形式違い、`allUsers` / `allAuthenticatedUsers`、`roles/editor` などの広いロール、閲覧者でない事前定義ロール、許可していないカスタムロール
+- カスタムロール（`projects/<id>/roles/...`）は既定で `ValueError`。中身が読み取り専用かを名前からは判断できないため、確かめたうえで `allow_custom_roles=True` を明示する
 - 引数を変更せず、返り値は `json.dumps` できる
 
 ## Alternatives
@@ -53,7 +55,7 @@ bucket.set_iam_policy(policy)
 - 条件付きバインディングは `version: 3` で読み書きする。`requested_policy_version` を上げずに読むと条件が落ちる
 - `roles/viewer` はプロジェクト内のほぼ全リソースのメタデータを読める。設定値に秘密が入っていると見えてしまう
 - IAM の変更が全域に行き渡るまで数分かかる。直後の検証は失敗しうる
-- カスタムロールの中身はこの関数では見ない。書き込み権限を含むカスタムロールを渡すと、読み取り専用のつもりのポリシーに書き込みが混ざる
+- `allow_custom_roles=True` にすると中身は検証されない。書き込み権限を含むカスタムロールを渡せば、読み取り専用のつもりのポリシーに書き込みが混ざる
 
 ## Test
 

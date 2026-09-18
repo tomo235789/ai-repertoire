@@ -22,8 +22,33 @@ SUB = "projects/my-project/subscriptions/orders-worker"
 DLQ = "projects/my-project/topics/orders-dead-letter"
 
 
+PROJECT_NUMBER = "123456789012"
+
+
+def _full(**kw):
+    kwargs = {"project_number": PROJECT_NUMBER}
+    kwargs.update(kw)
+    return ordered_subscription_with_dlq(TOPIC, SUB, DLQ, **kwargs)
+
+
 def _cfg(**kw):
-    return ordered_subscription_with_dlq(TOPIC, SUB, DLQ, **kw)["subscription_config"]
+    return _full(**kw)["subscription_config"]
+
+
+def test_dead_letter_bindings_returned():
+    """配信不能転送に要る IAM を、購読を作る前に与えるものとして返す"""
+    bindings = _full()["dead_letter_bindings"]
+    agent = "serviceAccount:service-123456789012@gcp-sa-pubsub.iam.gserviceaccount.com"
+    assert bindings == [
+        {"resource": DLQ, "role": "roles/pubsub.publisher", "members": [agent]},
+        {"resource": SUB, "role": "roles/pubsub.subscriber", "members": [agent]},
+    ]
+
+
+def test_project_number_must_be_digits():
+    """プロジェクト番号は数字"""
+    with pytest.raises(ValueError, match="プロジェクト番号"):
+        ordered_subscription_with_dlq(TOPIC, SUB, DLQ, project_number="my-project")
 
 
 def test_ordering_and_exactly_once():
@@ -64,7 +89,7 @@ def test_filter_is_opt_in():
 def test_dead_letter_must_differ_from_topic():
     """配信不能トピックを購読元と同じにできない"""
     with pytest.raises(ValueError, match="循環"):
-        ordered_subscription_with_dlq(TOPIC, SUB, TOPIC)
+        ordered_subscription_with_dlq(TOPIC, SUB, TOPIC, project_number=PROJECT_NUMBER)
 
 
 def test_range_checks():
@@ -84,19 +109,28 @@ def test_range_checks():
 def test_names_must_be_fully_qualified():
     """種別まで含めた完全名でないと ValueError"""
     with pytest.raises(ValueError):
-        ordered_subscription_with_dlq("orders", SUB, DLQ)
+        ordered_subscription_with_dlq("orders", SUB, DLQ, project_number=PROJECT_NUMBER)
     with pytest.raises(ValueError):
-        ordered_subscription_with_dlq(TOPIC, "projects/my-project/subscriptions/1bad", DLQ)
+        ordered_subscription_with_dlq(
+            TOPIC, "projects/my-project/subscriptions/1bad", DLQ,
+            project_number=PROJECT_NUMBER,
+        )
     with pytest.raises(ValueError):
-        ordered_subscription_with_dlq(TOPIC, TOPIC, DLQ)  # 購読の位置にトピック
+        ordered_subscription_with_dlq(
+            TOPIC, TOPIC, DLQ, project_number=PROJECT_NUMBER
+        )  # 購読の位置にトピック
     with pytest.raises(ValueError):
-        ordered_subscription_with_dlq(SUB, SUB, DLQ)  # トピックの位置に購読
+        ordered_subscription_with_dlq(
+            SUB, SUB, DLQ, project_number=PROJECT_NUMBER
+        )  # トピックの位置に購読
     with pytest.raises(ValueError):
-        ordered_subscription_with_dlq("projects/my-project", SUB, DLQ)
+        ordered_subscription_with_dlq(
+            "projects/my-project", SUB, DLQ, project_number=PROJECT_NUMBER
+        )
 
 
 def test_pure_and_serializable():
     """同じ入力に同じ出力を返し、JSON にできる"""
-    a = ordered_subscription_with_dlq(TOPIC, SUB, DLQ)
-    assert a == ordered_subscription_with_dlq(TOPIC, SUB, DLQ)
+    a = _full()
+    assert a == _full()
     assert json.loads(json.dumps(a)) == a

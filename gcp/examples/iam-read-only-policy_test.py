@@ -78,8 +78,12 @@ def test_overbroad_roles_rejected():
         read_only_policy({"roles/editor": [SA]})
     with pytest.raises(ValueError, match="閲覧者ロール"):
         read_only_policy({"roles/storage.objectAdmin": [SA]})
-    # カスタムロールは名前で判断せず通す
-    policy = read_only_policy({"projects/my-project/roles/objectLister": [SA]})
+    # カスタムロールは中身を検証できないので、明示的に許可したときだけ通す
+    with pytest.raises(ValueError, match="カスタムロール"):
+        read_only_policy({"projects/my-project/roles/objectLister": [SA]})
+    policy = read_only_policy(
+        {"projects/my-project/roles/objectLister": [SA]}, allow_custom_roles=True
+    )
     assert policy["bindings"][0]["role"] == "projects/my-project/roles/objectLister"
 
 

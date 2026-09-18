@@ -15,6 +15,10 @@ _CONTAINER_RE = re.compile(r"^[a-z0-9]([a-z0-9-]{1,61}[a-z0-9])$")
 # Storage Blob Data Reader（テナントに依らず固定の組み込みロール GUID）
 BLOB_DATA_READER_ROLE_ID = "2a2b9908-6ea1-4ae2-8e65-a410df84e7d1"
 PRINCIPAL_TYPES = ("User", "Group", "ServicePrincipal")
+_UAMI_RE = re.compile(
+    r"^/subscriptions/[^/]+/resourceGroups/[^/]+"
+    r"/providers/Microsoft\.ManagedIdentity/userAssignedIdentities/[^/]+$"
+)
 _ASSIGNMENT_NAMESPACE = uuid.UUID("6ba7b812-9dad-11d1-80b4-00c04fd430c8")
 
 
@@ -41,6 +45,7 @@ def private_container_config(
     subscription_id: str,
     resource_group: str,
     key_vault_key_uri: str | None = None,
+    encryption_identity_id: str | None = None,
     reader_principal_ids: tuple[str, ...] | list[str] = (),
     reader_principal_type: str = "ServicePrincipal",
     tags: dict[str, str] | None = None,
@@ -55,6 +60,8 @@ def private_container_config(
         subscription_id: サブスクリプション ID
         resource_group: リソースグループ名
         key_vault_key_uri: 顧客管理鍵の URI。省略すると Microsoft 管理鍵
+        encryption_identity_id: 鍵を読むユーザー割り当て ID の ARM リソース ID。
+            作成と同時に顧客管理鍵を設定するには必須
         reader_principal_ids: 読み取りを許すプリンシパルのオブジェクト ID
         reader_principal_type: プリンシパルの種別。User / Group / ServicePrincipal
         tags: アカウントに付けるタグ
@@ -64,7 +71,8 @@ def private_container_config(
         account / container / role_assignments を持つ dict
 
     Raises:
-        ValueError: 名前の形式違い、`allUsers` のような匿名プリンシパルの指定
+        ValueError: 名前の形式違い、顧客管理鍵にユーザー割り当て ID が無い、
+            `allUsers` のような匿名プリンシパルの指定
     """
     if not _ACCOUNT_RE.match(account_name):
         raise ValueError(f"ストレージアカウント名は小文字英数字 3〜24 文字: {account_name!r}")
@@ -107,9 +115,18 @@ def private_container_config(
     if tags:
         account["tags"] = dict(sorted(tags.items()))
     if key_vault_key_uri is not None:
+        if encryption_identity_id is None or not _UAMI_RE.match(encryption_identity_id):
+            raise ValueError(
+                "作成と同時に顧客管理鍵を使うには、鍵を読むユーザー割り当て ID の "
+                "ARM リソース ID が要る。システム割り当て ID は作成後にしか決まらない"
+            )
         vault_uri, key_vault_name, key_version = _split_key_uri(key_vault_key_uri)
-        account["identity"] = {"type": "SystemAssigned"}
+        account["identity"] = {
+            "type": "UserAssigned",
+            "userAssignedIdentities": {encryption_identity_id: {}},
+        }
         encryption = account["properties"]["encryption"]
+        encryption["identity"] = {"userAssignedIdentity": encryption_identity_id}
         encryption["keySource"] = "Microsoft.Keyvault"
         # Azure Storage は鍵の URI をまとめて受け取らない。金庫の URI と鍵名を分けて渡す
         encryption["keyvaultproperties"] = {

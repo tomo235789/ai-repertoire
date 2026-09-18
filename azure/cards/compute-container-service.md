@@ -40,9 +40,10 @@ client.container_apps.begin_create_or_update(
 - `traffic` は常に最新リビジョンへ 100%
 - `resources.memory` は CPU コア数の 2 倍の GiB。`cpu=0.5` なら `"1Gi"`
 - `registry_server` を渡したときだけ `registries` が入り、認証はマネージド ID。返り値にパスワードは含まれない
+- `registry_identity` にユーザー割り当て ID の ARM リソース ID を渡すと、アプリの `identity` が `"SystemAssigned, UserAssigned"` になり、その ID が `userAssignedIdentities` にも入る。付けないとイメージの取得に失敗する
 - `env` は名前順に並ぶ。同じ入力からは同じリビジョンになる
 - `min_replicas=0` は許す。アイドル時の課金が止まる代わりに初回リクエストが遅くなる
-- `ValueError`: 名前が英小文字・数字・ハイフンの 2〜32 文字でない、イメージにタグが無い、タグが `latest`、ポートが 1〜65535 の外、CPU が 0.25 刻みの 2.0 までに無い、`min_replicas > max_replicas`
+- `ValueError`: 名前が英小文字・数字・ハイフンの 2〜32 文字でない、イメージにタグが無いかタグが空、タグが `latest`、ポートが 1〜65535 の外、CPU が 0.25 刻みの 2.0 までに無い、`min_replicas > max_replicas`、`registry_identity` が `"system"` でも ARM リソース ID でもない
 - 引数を変更せず、返り値は `json.dumps` できる
 
 ## Alternatives

@@ -57,6 +57,19 @@ def test_privilege_escalation_rejected():
     assert "iam.serviceAccounts.actAs" in cfg["role"]["includedPermissions"]
 
 
+def test_set_iam_policy_permissions_rejected():
+    """setIamPolicy で終わる権限はどのリソースでも権限昇格になる"""
+    for permission in (
+        "resourcemanager.folders.setIamPolicy",
+        "resourcemanager.organizations.setIamPolicy",
+        "iam.serviceAccounts.setIamPolicy",
+    ):
+        with pytest.raises(ValueError, match="権限昇格"):
+            least_privilege_role("objectLister", "Object Lister", [permission])
+    with pytest.raises(ValueError, match="権限昇格"):
+        least_privilege_role("objectLister", "Object Lister", ["iam.serviceAccounts.signJwt"])
+
+
 def test_permission_format():
     """<サービス>.<リソース>.<動詞> の形でないと ValueError"""
     with pytest.raises(ValueError, match="権限の形式"):

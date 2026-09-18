@@ -15,7 +15,7 @@ status: public
 ## Signature
 
 ```python
-def private_container_config(account_name: str, container_name: str, location: str, *, subscription_id: str, resource_group: str, key_vault_key_uri: str | None = None, reader_principal_ids=(), reader_principal_type: str = 'ServicePrincipal', tags: dict[str, str] | None = None, allowed_ip_rules=()) -> dict
+def private_container_config(account_name: str, container_name: str, location: str, *, subscription_id: str, resource_group: str, key_vault_key_uri: str | None = None, encryption_identity_id: str | None = None, reader_principal_ids=(), reader_principal_type: str = 'ServicePrincipal', tags: dict[str, str] | None = None, allowed_ip_rules=()) -> dict
 ```
 
 ## Usage
@@ -39,11 +39,12 @@ for a in cfg["role_assignments"]:
 - `minimumTlsVersion` は `"TLS1_2"`、`supportsHttpsTrafficOnly` は `True`
 - `requireInfrastructureEncryption` は常に `True`
 - `key_vault_key_uri` を渡すと `keySource` が `"Microsoft.Keyvault"` になり、鍵の URI が `keyvaulturi` / `keyname` / `keyversion` に分かれて入る。省略すると Microsoft 管理鍵
+- 顧客管理鍵には `encryption_identity_id`（ユーザー割り当て ID の ARM リソース ID）が必須。アカウントの `identity` が `UserAssigned` になり、`encryption.identity` にも同じ ID が入る
 - `allowed_ip_rules` が空なら `publicNetworkAccess` は `"Disabled"`。1 件でもあると `"Enabled"` になるが、既定動作は `Deny` のまま
 - `reader_principal_ids` には Storage Blob Data Reader をコンテナのスコープで割り当てる。割り当て名はスコープとプリンシパルから `uuid5` で決まる
 - ロール定義 ID はサブスクリプションスコープで作る。割り当て先だけがコンテナのスコープ
 - `reader_principal_type` は `User` / `Group` / `ServicePrincipal`。既定はサービスプリンシパル
-- `ValueError`: アカウント名が小文字英数字 3〜24 文字でない、コンテナ名の形式違い、鍵の URI が `https://<vault>/keys/<name>[/<version>]` の形でない、未知のプリンシパル種別、`allUsers` / `allAuthenticatedUsers` を読み取りに指定
+- `ValueError`: アカウント名が小文字英数字 3〜24 文字でない、コンテナ名の形式違い、鍵の URI が `https://<vault>/keys/<name>[/<version>]` の形でない、顧客管理鍵にユーザー割り当て ID が無い、未知のプリンシパル種別、`allUsers` / `allAuthenticatedUsers` を読み取りに指定
 - 引数を変更せず、返り値は `json.dumps` できる
 
 ## Alternatives

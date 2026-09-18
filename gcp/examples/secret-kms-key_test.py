@@ -81,6 +81,20 @@ def test_destroy_delay_minimum():
     assert _cfg(destroy_scheduled_days=7)
 
 
+def test_next_rotation_time_must_exist():
+    """形だけ合っていても実在しない日時は弾く"""
+    with pytest.raises(ValueError, match="実在しない"):
+        _cfg(next_rotation_time="2026-99-99T99:99:99Z")
+
+
+def test_destroy_and_rotation_upper_bounds():
+    """破棄待ちは 120 日まで、ローテーション間隔にも上限がある"""
+    with pytest.raises(ValueError, match="破棄待ち"):
+        _cfg(destroy_scheduled_days=121)
+    with pytest.raises(ValueError, match="ローテーション間隔"):
+        _cfg(rotation_period_days=876_000 // 24 + 1)
+
+
 def test_invalid_inputs():
     """名前・保護レベル・ローテーション・メンバーの不正は ValueError"""
     with pytest.raises(ValueError):

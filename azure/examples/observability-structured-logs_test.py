@@ -130,6 +130,18 @@ def test_diagnostic_setting_validation():
 
 
 
+def test_redaction_normalizes_key_spelling():
+    """区切り文字と大文字小文字が違っても伏せる"""
+    record = json.loads(
+        log_line(TS, "Information", "x",
+                 fields={"accessToken": "a", "x-api-key": "b", "client_secret": "c", "note": "d"})
+    )
+    assert record["accessToken"] == "[REDACTED]"
+    assert record["x-api-key"] == "[REDACTED]"
+    assert record["client_secret"] == "[REDACTED]"
+    assert record["note"] == "d"
+
+
 def test_pure_and_serializable():
     """同じ入力に同じ出力を返し、JSON にできる"""
     a = diagnostic_setting(WORKSPACE, ["A"])

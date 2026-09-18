@@ -26,6 +26,7 @@ def read_only_policy(
     etag: str | None = None,
     condition_expression: str | None = None,
     condition_title: str = "",
+    allow_custom_roles: bool = False,
 ) -> dict:
     """読み取り系のロールだけを含むポリシーを返す。
 
@@ -34,6 +35,7 @@ def read_only_policy(
         etag: 読み込んだポリシーの etag。同時更新の取り違えを防ぐ
         condition_expression: 全バインディングに付ける CEL 条件
         condition_title: 条件の名前。条件を付けるときは必須
+        allow_custom_roles: カスタムロールを許す。中身が読み取り専用かは検証しない
 
     Returns:
         version 3 の Policy dict
@@ -41,7 +43,7 @@ def read_only_policy(
     Raises:
         ValueError: バインディングが空、ロールやメンバーの形式違い、
             allUsers などの公開メンバー、書き込みできる広いロール、
-            条件式と名前が揃っていない場合
+            明示的に許可していないカスタムロール、条件式と名前が揃っていない場合
     """
     if not bindings:
         raise ValueError("bindings は 1 件以上必要")
@@ -60,6 +62,11 @@ def read_only_policy(
             raise ValueError(f"ロールの形式が不正: {role!r}")
         if role in OVERBROAD_VIEWER_ROLES:
             raise ValueError(f"読み取り専用に含められないロール: {role!r}")
+        if not role.startswith("roles/") and not allow_custom_roles:
+            raise ValueError(
+                f"カスタムロールの中身は検証できない: {role!r}。"
+                "読み取り専用だと確かめたうえで allow_custom_roles=True を明示する"
+            )
         if role.startswith("roles/") and not (
             role.endswith("Viewer") or role.endswith("viewer") or ".get" in role
         ):

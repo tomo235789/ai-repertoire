@@ -50,7 +50,7 @@ def private_endpoint_config(
 
     Raises:
         ValueError: 名前の形式違い（バンドル向けは英小文字と数字で 20 文字まで）、
-            IP アドレスが不正か IPv6、
+            IP アドレスが不正、API バンドル向けに IPv6 を指定、
             target_service と api_bundle をどちらも指定しないか両方指定した場合、
             個別サービスにサブネットを渡さなかった場合
     """
@@ -60,14 +60,15 @@ def private_endpoint_config(
         parsed_ip = ipaddress.ip_address(ip_address)
     except ValueError as exc:
         raise ValueError(f"IP アドレスが不正: {ip_address!r}") from exc
-    if parsed_ip.version != 4:
-        raise ValueError(f"Private Service Connect は IPv4 のみ: {ip_address!r}")
     if (target_service is None) == (api_bundle is None):
         raise ValueError("target_service か api_bundle のどちらか一方を指定する")
 
     if api_bundle is not None:
         if api_bundle not in API_BUNDLES:
             raise ValueError(f"未知のバンドル: {api_bundle!r}")
+        # Google API へのバンドルは IPv4 の仮想 IP でしか作れない
+        if parsed_ip.version != 4:
+            raise ValueError(f"API バンドルへのエンドポイントは IPv4 のみ: {ip_address!r}")
         if not _BUNDLE_NAME_RE.match(name):
             raise ValueError(
                 f"バンドル向けの転送ルール名は英小文字と数字で 20 文字まで: {name!r}"

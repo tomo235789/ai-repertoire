@@ -14,20 +14,43 @@ _MAX_MESSAGE_CHARS = 32 * 1024
 _SEVERITIES = ("Verbose", "Information", "Warning", "Error", "Critical")
 
 # ログに出してはいけないキー（値ごと落とす）
+# 区切り文字と大文字小文字を落としてから照合する
 REDACTED_KEYS = frozenset(
-    {"password", "secret", "token", "authorization", "api_key", "apikey", "connectionstring"}
+    {
+        "password",
+        "passwd",
+        "secret",
+        "clientsecret",
+        "token",
+        "accesstoken",
+        "refreshtoken",
+        "authorization",
+        "apikey",
+        "xapikey",
+        "accesskey",
+        "privatekey",
+        "connectionstring",
+        "credential",
+        "credentials",
+        "sasurl",
+    }
 )
+
+
+def _is_sensitive(key: str) -> bool:
+    """区切り文字と大文字小文字を無視して、伏せるキーかを判定する"""
+    return re.sub(r"[^a-z0-9]", "", key.lower()) in REDACTED_KEYS
 # 関数が自分で埋めるキー。追加項目で上書きさせない
 RESERVED_KEYS = frozenset({"timestamp", "severity", "message", "operationId"})
 
 
 def _redact(key: str, value: Any) -> Any:
     """入れ子の dict と list も辿って、伏せるキーの値を置き換える"""
-    if key.lower() in REDACTED_KEYS:
+    if _is_sensitive(key):
         return "[REDACTED]"
     if isinstance(value, dict):
         return {k: _redact(k, v) for k, v in value.items()}
-    if isinstance(value, list):
+    if isinstance(value, (list, tuple)):
         return [_redact(key, v) for v in value]
     return value
 _TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$")

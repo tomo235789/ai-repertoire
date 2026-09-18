@@ -87,6 +87,12 @@ def test_invalid_inputs():
         service_identity_config(PRINCIPAL, SCOPE, role_name="Superuser")
 
 
+def test_user_assigned_identity_must_be_arm_id():
+    """ユーザー割り当て ID は ARM リソース ID で指定する"""
+    with pytest.raises(ValueError, match="ユーザー割り当て ID"):
+        service_identity_config(PRINCIPAL, SCOPE, user_assigned_identity_id="not-an-arm-id")
+
+
 def test_pure_and_serializable():
     """入力を変更せず、返り値は JSON にできる"""
     scope = SCOPE

@@ -89,6 +89,15 @@ def test_env_sorted_and_secrets_rejected():
         _cfg(env={"API_TOKEN": "abc"})
 
 
+def test_retired_runtime_not_offered():
+    """廃止済みのランタイムは選べない"""
+    with pytest.raises(ValueError):
+        serverless_function_config(
+            "example-fn", "go122", "handle", "example-bucket", "src.zip", SA,
+            event_trigger_topic=TOPIC,
+        )
+
+
 def test_invalid_inputs():
     """名前・ランタイム・入口・資源・数値・ingress の不正は ValueError"""
     with pytest.raises(ValueError):

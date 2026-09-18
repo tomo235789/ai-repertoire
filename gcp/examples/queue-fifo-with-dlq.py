@@ -21,8 +21,11 @@ def _check_resource(label: str, kind: str, value: str) -> None:
         raise ValueError(
             f"{label} は projects/<project>/{kind}s/<id> の完全名で指定する: {value!r}"
         )
-    if not _NAME_RE.match(match.group(1)):
+    resource_id = match.group(1)
+    if not _NAME_RE.match(resource_id):
         raise ValueError(f"{label} の名前の形式が不正: {value!r}")
+    if resource_id.lower().startswith("goog"):
+        raise ValueError(f"{label} の ID は goog で始められない: {value!r}")
 
 # 配信不能トピックへ送るまでの試行回数
 MIN_DELIVERY_ATTEMPTS = 5
@@ -37,6 +40,7 @@ def ordered_subscription_with_dlq(
     subscription: str,
     dead_letter_topic: str,
     *,
+    project_number: str,
     ack_deadline_seconds: int = 60,
     max_delivery_attempts: int = 5,
     message_retention_days: int = 7,
@@ -49,6 +53,7 @@ def ordered_subscription_with_dlq(
         topic: 購読元トピックの完全名
         subscription: 購読の完全名
         dead_letter_topic: 配信不能トピックの完全名
+        project_number: Pub/Sub サービスエージェントを組み立てるプロジェクト番号
         ack_deadline_seconds: 確認応答の期限。10〜600
         max_delivery_attempts: 退避までの試行回数。5〜100
         message_retention_days: 未確認メッセージを保持する日数。1〜7
@@ -56,10 +61,12 @@ def ordered_subscription_with_dlq(
         filter_expression: 購読側で絞り込む式
 
     Returns:
-        topic_config と subscription_config を持つ dict
+        topic_config、subscription_config、
+        dead_letter_bindings（購読を作る前に与える IAM）を持つ dict
 
     Raises:
         ValueError: 名前の形式違い、配信不能トピックが購読元と同じ、
+            プロジェクト番号が数字でない、
             確認応答の期限や試行回数や保持日数が範囲外の場合
     """
     _check_resource("topic", "topic", topic)
@@ -75,6 +82,8 @@ def ordered_subscription_with_dlq(
         raise ValueError(
             f"試行回数は {MIN_DELIVERY_ATTEMPTS}〜{MAX_DELIVERY_ATTEMPTS}: {max_delivery_attempts}"
         )
+    if not project_number.isdigit():
+        raise ValueError(f"プロジェクト番号は数字で指定する: {project_number!r}")
     if not 1 <= message_retention_days <= 7:
         raise ValueError(f"保持日数は 1〜7: {message_retention_days}")
 
@@ -99,7 +108,24 @@ def ordered_subscription_with_dlq(
     if filter_expression is not None:
         subscription_config["filter"] = filter_expression
 
+    # 配信不能転送は Pub/Sub のサービスエージェントが行う。
+    # 購読を作る前にこの 2 つを与えないと、退避されないまま再試行が続く
+    service_agent = (
+        f"serviceAccount:service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+    )
     return {
         "topic_config": {"name": topic, "message_retention_duration": {"seconds": 86400}},
         "subscription_config": subscription_config,
+        "dead_letter_bindings": [
+            {
+                "resource": dead_letter_topic,
+                "role": "roles/pubsub.publisher",
+                "members": [service_agent],
+            },
+            {
+                "resource": subscription,
+                "role": "roles/pubsub.subscriber",
+                "members": [service_agent],
+            },
+        ],
     }

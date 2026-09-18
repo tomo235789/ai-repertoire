@@ -70,6 +70,20 @@ def test_overlapping_secondaries_rejected():
         _cfg(secondary_ranges={"pods": "10.1.0.0/16", "services": "10.1.1.0/24"})
 
 
+def test_purpose_limited_to_private():
+    """ワークロード用のサブネットだけを作る"""
+    with pytest.raises(ValueError, match="purpose=PRIVATE"):
+        _cfg(purpose="REGIONAL_MANAGED_PROXY")
+
+
+def test_prefix_length_range():
+    """主レンジも副レンジも /4〜/29"""
+    with pytest.raises(ValueError, match="/4〜/29"):
+        private_subnet_config("app", "example-vpc", "0.0.0.0/3", "asia-northeast1")
+    with pytest.raises(ValueError, match="副レンジは /4〜/29"):
+        _cfg(secondary_ranges={"pods": "10.1.0.0/30"})
+
+
 def test_invalid_inputs():
     """名前・CIDR・プレフィックス長・サンプリング率の不正は ValueError"""
     with pytest.raises(ValueError):

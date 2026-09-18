@@ -35,7 +35,8 @@ def backup_retention_config(
         week_of_year_for_yearly: 年次として残す週の番号。1〜52
 
     Returns:
-        backup と long_term_retention を持つ dict
+        backup_on_create（作成時の body）、backup_on_update（更新時の body）、
+        long_term_retention（別 API 用）を持つ dict
 
     Raises:
         ValueError: 保持日数が 7〜35 の外、長期保持の値が範囲外、
@@ -72,9 +73,13 @@ def backup_retention_config(
     }
 
     return {
-        "backup": {
+        # サーバー作成時の body。地理冗長は作成時にしか決められない
+        "backup_on_create": {
             "backupRetentionDays": retention_days,
             "geoRedundantBackup": "Enabled" if geo_redundant else "Disabled",
         },
+        # 既存サーバーの更新用。作成時にしか決められないキーを含めない
+        "backup_on_update": {"backupRetentionDays": retention_days},
+        # サーバーの更新では適用されない。Azure Backup / SQL の別 API に渡す
         "long_term_retention": long_term_retention,
     }

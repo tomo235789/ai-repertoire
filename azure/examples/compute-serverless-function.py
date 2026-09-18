@@ -10,6 +10,16 @@ import re
 
 _NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$")
 
+# 値が Key Vault 参照でなければならない設定名の語尾
+SECRET_NAME_SUFFIXES = ("password", "secret", "token", "apikey", "accesskey", "key")
+KEY_VAULT_REFERENCE_PREFIX = "@Microsoft.KeyVault("
+
+
+def _is_secret_name(key: str) -> bool:
+    """区切り文字と大文字小文字を落としてから、秘密用途の名前かを見る"""
+    normalized = re.sub(r"[^a-z0-9]", "", key.lower())
+    return normalized.endswith(SECRET_NAME_SUFFIXES)
+
 # ランタイムごとの linuxFxVersion とワーカー名
 RUNTIMES: dict[str, tuple[str, str]] = {
     "python3.12": ("Python|3.12", "python"),
@@ -45,7 +55,7 @@ def serverless_function_config(
 
     Raises:
         ValueError: 名前の形式違い、未知のランタイム、
-            アプリ設定に秘密値らしい平文を入れた場合
+            秘密用途の名前に Key Vault 参照でない値を入れた場合
     """
     if not _NAME_RE.match(name):
         raise ValueError(f"関数アプリ名は英小文字・数字・ハイフンで 3〜60 文字: {name!r}")
@@ -67,7 +77,12 @@ def serverless_function_config(
     for key, value in (app_settings or {}).items():
         if key in settings:
             raise ValueError(f"予約済みのアプリ設定は上書きできない: {key}")
-        if "AccountKey=" in value or "SharedAccessKey=" in value:
+        looks_like_connection_string = (
+            "accountkey=" in value.lower() or "sharedaccesskey=" in value.lower()
+        )
+        if looks_like_connection_string or (
+            _is_secret_name(key) and not value.startswith(KEY_VAULT_REFERENCE_PREFIX)
+        ):
             raise ValueError(
                 f"アプリ設定に秘密値を直接入れない（{key}）。Key Vault 参照を使う"
             )

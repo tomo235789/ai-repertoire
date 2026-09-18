@@ -82,6 +82,14 @@ def test_privileged_roles_rejected():
     assert cfg["bindings"][0]["role"] == "roles/editor"
 
 
+def test_empty_workload_identity_names_rejected():
+    """名前空間もサービスアカウント名も空にできない"""
+    with pytest.raises(ValueError, match="空にできない"):
+        _cfg(kubernetes_namespace="", kubernetes_service_account="api")
+    with pytest.raises(ValueError, match="空にできない"):
+        _cfg(kubernetes_namespace="prod", kubernetes_service_account="")
+
+
 def test_invalid_inputs():
     """プロジェクト ID・アカウント ID・ロールの不正は ValueError"""
     with pytest.raises(ValueError):

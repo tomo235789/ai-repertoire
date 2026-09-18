@@ -89,6 +89,17 @@ def test_invalid_inputs():
         serverless_function_config("example-fn", "ruby3.3", "examplestorage", FARM)
 
 
+def test_secret_named_settings_require_key_vault_reference():
+    """秘密用途の名前には Key Vault 参照だけを許す"""
+    for key in ("DB_PASSWORD", "API_TOKEN", "MY_CLIENT_SECRET", "STORAGE_ACCESS_KEY"):
+        with pytest.raises(ValueError, match="秘密値"):
+            _cfg(app_settings={key: "hunter2"})
+    cfg = _cfg(
+        app_settings={"DB_PASSWORD": "@Microsoft.KeyVault(SecretUri=https://kv.vault.azure.net/secrets/db)"}
+    )
+    assert any(s["name"] == "DB_PASSWORD" for s in cfg["properties"]["siteConfig"]["appSettings"])
+
+
 def test_pure_and_serializable():
     """引数を変更せず、返り値は JSON にできる"""
     extra = {"MY_FLAG": "on"}

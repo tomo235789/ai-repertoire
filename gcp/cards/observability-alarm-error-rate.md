@@ -36,7 +36,7 @@ client.create_alert_policy(name="projects/my-project", alert_policy=policy)
 - `duration` は秒の文字列。継続時間は集計の刻み以上でなければ `ValueError`
 - `alert_strategy` に自動クローズと、チャネルごとの再通知の間隔が入る。間隔は集計の刻みか 1800 秒の大きい方。`notification_rate_limit` はログベースの条件でしか効かないので使わない
 - `documentation` にしきい値と足切りの件数が日本語で入る
-- `ValueError`: 表示名やサービス名が空、通知チャネルが空、しきい値が 0 以下か 1.0 超、集計の刻みが既定の値以外、継続時間が刻み未満か 60 秒の倍数でない、最小件数が 1 未満、未知の combiner
+- `ValueError`: 表示名が空、サービス名が Cloud Run の命名規則（英小文字・数字・ハイフンで 1〜49 文字）から外れる、通知チャネルが空、しきい値が 0 以下か 1.0 超、集計の刻みが既定の値以外、継続時間が刻み未満か 60 秒の倍数でない、最小件数が 1 未満、未知の combiner
 - 同じ入力に同じ出力を返し、返り値は `json.dumps` できる
 
 ## Alternatives
@@ -50,6 +50,7 @@ client.create_alert_policy(name="projects/my-project", alert_policy=policy)
 
 - 件数の足切りを入れないと、深夜の 1 件の失敗でエラー率 100% になる
 - クエリは監視対象と指標に強く依存する。Cloud Run 以外に流用するときは `fetch` する監視対象を変える。実際の値は Metrics Explorer で確かめてから使う
+- サービス名は MQL に単一引用符で埋め込まれる。引用符や改行を含む値を渡せないよう、命名規則で弾いている
 - 通知チャネルを空にしたポリシーは発報しても誰にも届かない。作れてしまうので注意する
 - 自動クローズを短くすると、復旧していないのにインシデントが閉じる
 - 指標の取り込みに数分の遅れがある。発報も同じだけ遅れる

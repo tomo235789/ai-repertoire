@@ -94,6 +94,13 @@ def test_channels_required():
         error_rate_alert("a", "example-api", [])
 
 
+def test_service_name_validated_before_embedding():
+    """MQL に埋め込む前に Cloud Run の命名規則で検証する"""
+    for bad in ("Example-API", "a' or true", "api\nrate", "-api"):
+        with pytest.raises(ValueError, match="service_name"):
+            error_rate_alert("api エラー率", bad, [CHANNEL])
+
+
 def test_invalid_inputs():
     """名前・しきい値・刻み・件数・combiner の不正は ValueError"""
     with pytest.raises(ValueError):

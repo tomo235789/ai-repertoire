@@ -11,7 +11,7 @@ import re
 _NAME_RE = re.compile(r"^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$")
 _MEMORY_RE = re.compile(r"^\d+(Mi|Gi)$")
 
-RUNTIMES = ("python312", "python311", "nodejs20", "go122", "java21")
+RUNTIMES = ("python313", "python312", "python311", "nodejs22", "nodejs20", "go124", "java21")
 # 受け付ける到達範囲
 INGRESS_SETTINGS = ("ALLOW_ALL", "ALLOW_INTERNAL_ONLY", "ALLOW_INTERNAL_AND_GCLB")
 # 実行時間の上限はトリガー種別で違う

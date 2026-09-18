@@ -26,6 +26,10 @@ PRIVILEGE_ESCALATING_ROLES = frozenset({"Owner", "User Access Administrator"})
 
 _UUID_RE = re.compile(r"^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$")
 _SCOPE_RE = re.compile(r"^/subscriptions/([^/]+)(/.*)?$")
+_UAMI_RE = re.compile(
+    r"^/subscriptions/[^/]+/resourceGroups/[^/]+"
+    r"/providers/Microsoft\.ManagedIdentity/userAssignedIdentities/[^/]+$"
+)
 
 # ロール割り当て名を入力から決めるための固定名前空間（呼び出しごとに変わらない）
 _ASSIGNMENT_NAMESPACE = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
@@ -56,6 +60,7 @@ def service_identity_config(
 
     Raises:
         ValueError: principal_id が GUID でない、scope の形式が違う、未知のロール名、
+            ユーザー割り当て ID が ARM リソース ID でない、
             権限昇格ロールを明示許可なしに指定した場合
     """
     if not _UUID_RE.match(principal_id):
@@ -68,6 +73,12 @@ def service_identity_config(
         raise ValueError(
             f"{role_name} はワークロードの ID に割り当てない。"
             "必要なら allow_privileged_role=True を明示する"
+        )
+
+    if user_assigned_identity_id is not None and not _UAMI_RE.match(user_assigned_identity_id):
+        raise ValueError(
+            "ユーザー割り当て ID は Microsoft.ManagedIdentity の ARM リソース ID を指定する: "
+            f"{user_assigned_identity_id!r}"
         )
 
     if user_assigned_identity_id is None:

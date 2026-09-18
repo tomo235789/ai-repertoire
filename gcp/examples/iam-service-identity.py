@@ -22,6 +22,11 @@ PRIVILEGED_ROLES = frozenset(
         "roles/iam.serviceAccountTokenCreator",
         "roles/iam.serviceAccountUser",
         "roles/resourcemanager.projectIamAdmin",
+        "roles/resourcemanager.folderIamAdmin",
+        "roles/resourcemanager.organizationAdmin",
+        # 他のサービスアカウントを作り替えたり鍵を発行したりできる
+        "roles/iam.serviceAccountAdmin",
+        "roles/iam.serviceAccountKeyAdmin",
     }
 )
 
@@ -73,6 +78,10 @@ def service_identity_config(
         )
     if (kubernetes_namespace is None) != (kubernetes_service_account is None):
         raise ValueError("Workload Identity には名前空間とサービスアカウント名の両方が要る")
+    if kubernetes_namespace is not None and not (
+        kubernetes_namespace and kubernetes_service_account
+    ):
+        raise ValueError("Workload Identity の名前空間とサービスアカウント名は空にできない")
 
     email = f"{account_id}@{project_id}.iam.gserviceaccount.com"
     member = f"serviceAccount:{email}"

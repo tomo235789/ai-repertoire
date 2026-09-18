@@ -27,7 +27,7 @@ def static_site_config(
     origin_host: str,
     *,
     origin_group_id: str,
-    custom_domain: str | None = None,
+    custom_domain_id: str | None = None,
     cache_seconds: int = DEFAULT_CACHE_SECONDS,
     html_cache_seconds: int = HTML_CACHE_SECONDS,
     compress: bool = True,
@@ -37,7 +37,8 @@ def static_site_config(
     Args:
         origin_host: 配信元のホスト名。ストレージの静的 Web サイトなど
         origin_group_id: オリジングループの ARM リソース ID
-        custom_domain: 独自ドメイン。省略すると Front Door の既定ホストだけ
+        custom_domain_id: 独自ドメイン（AFDDomain）の ARM リソース ID。
+            省略すると Front Door の既定ホストだけ
         cache_seconds: 静的ファイルのキャッシュ秒数
         html_cache_seconds: HTML のキャッシュ秒数。静的ファイルより短くする
         compress: 圧縮を有効にするか
@@ -46,13 +47,16 @@ def static_site_config(
         origin / route / response_headers / security_policy を持つ dict
 
     Raises:
-        ValueError: ホスト名の形式違い、オリジングループが ARM リソース ID でない、
-            キャッシュ秒数が負、HTML のキャッシュが静的ファイルより長い場合
+        ValueError: ホスト名の形式違い、オリジングループか独自ドメインが
+            ARM リソース ID でない、キャッシュ秒数が負、
+            HTML のキャッシュが静的ファイルより長い場合
     """
     if not _HOST_RE.match(origin_host):
         raise ValueError(f"オリジンのホスト名の形式が不正: {origin_host!r}")
-    if custom_domain is not None and not _HOST_RE.match(custom_domain):
-        raise ValueError(f"独自ドメインの形式が不正: {custom_domain!r}")
+    if custom_domain_id is not None and not custom_domain_id.startswith("/subscriptions/"):
+        raise ValueError(
+            f"独自ドメインは AFDDomain の ARM リソース ID で指定する: {custom_domain_id!r}"
+        )
     if not origin_group_id.startswith("/subscriptions/"):
         raise ValueError(
             f"オリジングループは ARM リソース ID で指定する: {origin_group_id!r}"
@@ -83,7 +87,7 @@ def static_site_config(
         # 平文でのアクセスは HTTPS へ寄せる
         "httpsRedirect": "Enabled",
         "forwardingProtocol": "HttpsOnly",
-        "linkToDefaultDomain": "Enabled" if custom_domain is None else "Disabled",
+        "linkToDefaultDomain": "Enabled" if custom_domain_id is None else "Disabled",
         "cacheConfiguration": {
             "queryStringCachingBehavior": "IgnoreQueryString",
             "compressionSettings": {
@@ -98,8 +102,8 @@ def static_site_config(
             },
         },
     }
-    if custom_domain is not None:
-        route["customDomains"] = [{"hostName": custom_domain}]
+    if custom_domain_id is not None:
+        route["customDomains"] = [{"id": custom_domain_id}]
 
     return {
         "origin": origin,

@@ -77,6 +77,18 @@ def test_topic_options():
     assert cfg["kms_key_name"] == "k"
 
 
+def test_goog_prefixed_ids_rejected():
+    """Pub/Sub の ID は goog で始められない"""
+    with pytest.raises(ValueError, match="goog"):
+        fanout_topic("projects/my-project/topics/googevents", {AUDIT: {}})
+
+
+def test_push_arguments_must_be_paired():
+    """プッシュ配信は配信先と署名するサービスアカウントを対で指定する"""
+    with pytest.raises(ValueError, match="対で指定"):
+        fanout_topic(TOPIC, {BILLING: {"push_service_account": SA}})
+
+
 def test_invalid_inputs():
     """名前・購読者・保持日数・設定キーの不正は ValueError"""
     with pytest.raises(ValueError):

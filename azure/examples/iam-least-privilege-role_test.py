@@ -99,6 +99,15 @@ def test_empty_inputs_rejected():
         least_privilege_role("BadScope", "説明", [READ_BLOB], ["example-rg"])
 
 
+def test_multiple_management_groups_rejected():
+    """カスタムロールに指定できる管理グループは 1 件まで"""
+    mg1 = "/providers/Microsoft.Management/managementGroups/mg-a"
+    mg2 = "/providers/Microsoft.Management/managementGroups/mg-b"
+    assert least_privilege_role("R", "説明", [READ_BLOB], [mg1])
+    with pytest.raises(ValueError, match="管理グループは 1 件"):
+        least_privilege_role("R", "説明", [READ_BLOB], [mg1, mg2])
+
+
 def test_pure_and_serializable():
     """引数のリストを変更せず、返り値は JSON にできる"""
     actions = [READ_BLOB]

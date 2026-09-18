@@ -52,6 +52,7 @@ def least_privilege_role(
 
     Raises:
         ValueError: actions か assignable_scopes が空、スコープの形式違い、
+            管理グループを 2 件以上指定、データプレーンの操作と管理グループの併用、
             `*` や `<Provider>/*` のような広すぎるワイルドカード、
             actions と not_actions に同じ操作が入っている場合
     """
@@ -68,6 +69,14 @@ def least_privilege_role(
     for scope in assignable_scopes:
         if not (_SCOPE_RE.match(scope) or _MG_SCOPE_RE.match(scope)):
             raise ValueError(f"割り当て可能スコープの形式が不正: {scope!r}")
+    # カスタムロールに指定できる管理グループは 1 件まで
+    management_groups = [s for s in assignable_scopes if _MG_SCOPE_RE.match(s)]
+    if len(management_groups) > 1:
+        raise ValueError("assignable_scopes に指定できる管理グループは 1 件まで")
+    if management_groups and (data_actions or not_data_actions):
+        raise ValueError(
+            "データプレーンの操作を持つロールは、管理グループを割り当て可能スコープにできない"
+        )
 
     _check_operations("actions", actions)
     _check_operations("dataActions", data_actions)

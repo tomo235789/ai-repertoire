@@ -41,8 +41,12 @@ def test_https_redirect_and_tls_policy():
 def test_http_frontend_is_complete():
     """HTTP の受け口はプロキシと 80 番の転送ルールまで揃える"""
     cfg = _cfg()
-    assert cfg["http_target_proxy"]["urlMap"] == cfg["http_redirect_url_map"]["name"]
-    assert cfg["http_forwarding_rule"]["target"] == cfg["http_target_proxy"]["name"]
+    assert cfg["http_target_proxy"]["urlMap"] == (
+        f"global/urlMaps/{cfg['http_redirect_url_map']['name']}"
+    )
+    assert cfg["http_forwarding_rule"]["target"] == (
+        f"global/targetHttpProxies/{cfg['http_target_proxy']['name']}"
+    )
     assert cfg["http_forwarding_rule"]["portRange"] == "80"
 
 
@@ -55,13 +59,22 @@ def test_managed_certificate_domains_sorted():
     assert cfg["ssl_certificate"]["type"] == "MANAGED"
 
 
-def test_resources_are_wired_by_name():
-    """各リソースが名前で繋がる"""
+def test_resources_are_wired_by_partial_url():
+    """リソース参照は部分 URL。裸の名前では Compute Engine が解決できない"""
     cfg = _cfg()
-    assert cfg["url_map"]["defaultService"] == cfg["backend_bucket"]["name"]
-    assert cfg["target_proxy"]["urlMap"] == cfg["url_map"]["name"]
-    assert cfg["target_proxy"]["sslCertificates"] == [cfg["ssl_certificate"]["name"]]
-    assert cfg["forwarding_rule"]["target"] == cfg["target_proxy"]["name"]
+    assert cfg["url_map"]["defaultService"] == (
+        f"global/backendBuckets/{cfg['backend_bucket']['name']}"
+    )
+    assert cfg["target_proxy"]["urlMap"] == f"global/urlMaps/{cfg['url_map']['name']}"
+    assert cfg["target_proxy"]["sslCertificates"] == [
+        f"global/sslCertificates/{cfg['ssl_certificate']['name']}"
+    ]
+    assert cfg["target_proxy"]["sslPolicy"] == (
+        f"global/sslPolicies/{cfg['ssl_policy']['name']}"
+    )
+    assert cfg["forwarding_rule"]["target"] == (
+        f"global/targetHttpsProxies/{cfg['target_proxy']['name']}"
+    )
 
 
 def test_cache_key_ignores_query_string():

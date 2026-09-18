@@ -21,7 +21,17 @@ backup_retention_config = _load().backup_retention_config
 def test_defaults():
     """既定は 35 日保持と地理冗長"""
     cfg = backup_retention_config()
-    assert cfg["backup"] == {"backupRetentionDays": 35, "geoRedundantBackup": "Enabled"}
+    assert cfg["backup_on_create"] == {
+        "backupRetentionDays": 35,
+        "geoRedundantBackup": "Enabled",
+    }
+
+
+def test_update_body_omits_creation_only_keys():
+    """地理冗長は作成時にしか決められないので、更新用 body には入れない"""
+    cfg = backup_retention_config()
+    assert cfg["backup_on_update"] == {"backupRetentionDays": 35}
+    assert "geoRedundantBackup" not in cfg["backup_on_update"]
 
 
 def test_long_term_retention_off_by_default():
@@ -58,7 +68,7 @@ def test_week_of_year_ignored_without_yearly():
 def test_geo_redundant_can_be_disabled():
     """地理冗長は切れる"""
     cfg = backup_retention_config(geo_redundant=False)
-    assert cfg["backup"]["geoRedundantBackup"] == "Disabled"
+    assert cfg["backup_on_create"]["geoRedundantBackup"] == "Disabled"
 
 
 def test_weekly_must_exceed_automatic_retention():

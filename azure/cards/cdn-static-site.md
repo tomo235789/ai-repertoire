@@ -15,7 +15,7 @@ status: public
 ## Signature
 
 ```python
-def static_site_config(origin_host: str, *, origin_group_id: str, custom_domain: str | None = None, cache_seconds: int = 86400, html_cache_seconds: int = 60, compress: bool = True) -> dict
+def static_site_config(origin_host: str, *, origin_group_id: str, custom_domain_id: str | None = None, cache_seconds: int = 86400, html_cache_seconds: int = 60, compress: bool = True) -> dict
 ```
 
 ## Usage
@@ -24,7 +24,7 @@ def static_site_config(origin_host: str, *, origin_group_id: str, custom_domain:
 cfg = static_site_config(
     "examplestorage.z11.web.core.windows.net",
     origin_group_id=origin_group_id,
-    custom_domain="www.example.com",
+    custom_domain_id=custom_domain_id,
 )
 client.afd_origins.begin_create(
     "example-rg", "example-fd", "static-origin-group", "storage", cfg["origin"]
@@ -37,10 +37,10 @@ client.afd_origins.begin_create(
 - オリジンへの接続も証明書名の検査つき
 - 応答ヘッダーはヘッダー名順に並び、HSTS・`nosniff`・Referrer-Policy・CSP が必ず入る
 - キャッシュ規則は 2 本。HTML は `html_cache_seconds`、資産は `cache_seconds`
-- `custom_domain` を渡すと既定ドメインへの紐付けが `"Disabled"` になる
+- `custom_domain_id` を渡すと `customDomains` に `{"id": ...}` が入り、既定ドメインへの紐付けが `"Disabled"` になる。ドメインは別リソースとして先に作る
 - クエリ文字列ではキャッシュを分けない
 - `originGroup.id` にはオリジングループの ARM リソース ID がそのまま入る。名前だけでは参照できない
-- `ValueError`: ホスト名や独自ドメインの形式違い、オリジングループが ARM リソース ID でない、キャッシュ秒数が負、HTML のキャッシュが資産より長い
+- `ValueError`: ホスト名の形式違い、オリジングループか独自ドメインが ARM リソース ID でない、キャッシュ秒数が負、HTML のキャッシュが資産より長い
 - 同じ入力に同じ出力を返し、返り値は `json.dumps` できる
 
 ## Alternatives
@@ -53,7 +53,7 @@ client.afd_origins.begin_create(
 ## Pitfalls
 
 - HTML を長くキャッシュすると、差し替えても古い画面が残る。資産はファイル名にハッシュを付けて長く、HTML は短くする
-- 独自ドメインは証明書の検証（DNS の TXT レコード）が終わるまで有効にならない
+- 独自ドメインは AFDDomain リソースとして先に作り、証明書の検証（DNS の TXT レコード）が終わるまで有効にならない。route には名前ではなく ARM リソース ID を渡す
 - オリジンをストレージにする場合、Front Door からの経路だけを許すようにプライベートリンクかアクセス制限を別に設定する。設定しないとオリジンの URL に直接アクセスできる
 - キャッシュの削除は即時ではない。反映を待てない変更はパスを変える
 - クエリ文字列を無視する設定は、クエリで内容が変わるページには使えない

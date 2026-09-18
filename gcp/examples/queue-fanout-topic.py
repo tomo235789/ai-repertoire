@@ -21,8 +21,11 @@ def _check_resource(label: str, kind: str, value: str) -> None:
         raise ValueError(
             f"{label} は projects/<project>/{kind}s/<id> の完全名で指定する: {value!r}"
         )
-    if not _NAME_RE.match(match.group(1)):
+    resource_id = match.group(1)
+    if not _NAME_RE.match(resource_id):
         raise ValueError(f"{label} の名前の形式が不正: {value!r}")
+    if resource_id.lower().startswith("goog"):
+        raise ValueError(f"{label} の ID は goog で始められない: {value!r}")
 _HTTPS_RE = re.compile(r"^https://[^\s]+$")
 
 
@@ -49,9 +52,9 @@ def fanout_topic(
         topic_config と subscription_configs（購読名順のリスト）を持つ dict
 
     Raises:
-        ValueError: 名前の形式違い、購読者が空、保持日数が範囲外、
-            未知の設定キー、プッシュ配信先が HTTPS でない、
-            プッシュなのにサービスアカウントが無い場合
+        ValueError: 名前の形式違い、ID が goog で始まる、購読者が空、
+            保持日数が範囲外、未知の設定キー、プッシュ配信先が HTTPS でない、
+            プッシュの配信先とサービスアカウントが対になっていない場合
     """
     _check_resource("topic", "topic", topic)
     if not subscribers:
@@ -83,6 +86,10 @@ def fanout_topic(
         }
         if "filter" in options:
             config["filter"] = options["filter"]
+        if ("push_endpoint" in options) != ("push_service_account" in options):
+            raise ValueError(
+                f"プッシュ配信は配信先と署名するサービスアカウントを対で指定する: {name!r}"
+            )
         if "push_endpoint" in options:
             endpoint = options["push_endpoint"]
             if not _HTTPS_RE.match(endpoint):

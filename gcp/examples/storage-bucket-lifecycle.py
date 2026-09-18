@@ -35,7 +35,7 @@ def lifecycle_rules(
     Raises:
         ValueError: 未知のストレージクラス、日数が 1 未満、
             移行の順序が階層の順序と逆、削除が最後の移行より早い、
-            最後の階層の最低保存期間より前に削除する、残す版の数が負の場合
+            作成から最後の階層の最低保存期間より前に削除する、残す版の数が負の場合
     """
     if transitions is None:
         transitions = {"NEARLINE": 30, "COLDLINE": 90}
@@ -63,14 +63,14 @@ def lifecycle_rules(
             raise ValueError(
                 f"削除は最後の移行より後にする: {delete_after_days} <= {ordered[-1][1]}"
             )
-        # 最後の階層に移してすぐ消すと早期削除の料金がかかる
+        # 最低保存期間は前の階層での経過も算入されるので、作成からの日数で見る
         if ordered:
-            last_class, last_days = ordered[-1]
+            last_class = ordered[-1][0]
             minimum = MINIMUM_STORAGE_DAYS[last_class]
-            if delete_after_days - last_days < minimum:
+            if delete_after_days < minimum:
                 raise ValueError(
-                    f"{last_class} の最低保存期間は {minimum} 日。"
-                    f"移行 {last_days} 日の後、削除は {last_days + minimum} 日以降にする"
+                    f"{last_class} の最低保存期間は作成から {minimum} 日。"
+                    f"削除は {minimum} 日以降にする: {delete_after_days}"
                 )
     if delete_noncurrent_after_days is not None and delete_noncurrent_after_days < 1:
         raise ValueError(f"旧版の削除日数は 1 以上: {delete_noncurrent_after_days}")

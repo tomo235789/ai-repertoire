@@ -6,12 +6,15 @@ API は呼ばず、パスワードも作らない。
 
 from __future__ import annotations
 
+import ipaddress
 import re
 
 _NAME_RE = re.compile(r"^[a-z][a-z0-9-]{0,96}[a-z0-9]$")
 _VERSION_RE = re.compile(r"^(POSTGRES|MYSQL|SQLSERVER)_[0-9_A-Z]+$")
 
 AVAILABILITY_TYPES = ("ZONAL", "REGIONAL")
+# Cloud SQL の接続名 <プロジェクト>:<インスタンス> の上限
+MAX_CONNECTION_NAME = 98
 
 # IAM 認証を有効にするフラグ名。SQL Server は IAM 認証に対応していない
 IAM_AUTH_FLAGS = {
@@ -24,6 +27,7 @@ def encrypted_instance_config(
     name: str,
     region: str,
     *,
+    project_id: str,
     database_version: str = "POSTGRES_16",
     tier: str = "db-custom-2-7680",
     disk_size_gb: int = 100,
@@ -38,6 +42,7 @@ def encrypted_instance_config(
     Args:
         name: インスタンス名
         region: リージョン
+        project_id: プロジェクト ID。接続名の長さを検査するために使う
         database_version: データベースの版
         tier: マシンタイプ
         disk_size_gb: ディスク容量。10 GB 以上
@@ -51,12 +56,20 @@ def encrypted_instance_config(
         instances.insert に渡せる DatabaseInstance dict
 
     Raises:
-        ValueError: 名前や版の形式違い、IAM 認証に対応しないエンジン、
-            ディスクが 10 GB 未満、未知の可用性、
-            限定公開 IP も許可ネットワークも無い、削除保護を切ろうとした場合
+        ValueError: 名前や版の形式違い、接続名が 98 文字超、
+            IAM 認証に対応しないエンジン、
+            ディスクが 10 GB 未満、未知の可用性、許可ネットワークの CIDR が不正か
+            プレフィックス長 0、限定公開 IP も許可ネットワークも無い、
+            削除保護を切ろうとした場合
     """
     if not _NAME_RE.match(name):
         raise ValueError(f"インスタンス名の形式が不正: {name!r}")
+    connection_name = f"{project_id}:{name}"
+    if len(connection_name) > MAX_CONNECTION_NAME:
+        raise ValueError(
+            f"<プロジェクト>:<インスタンス> は {MAX_CONNECTION_NAME} 文字まで:"
+            f" {connection_name!r}"
+        )
     if not _VERSION_RE.match(database_version):
         raise ValueError(f"データベースの版の形式が不正: {database_version!r}")
     if disk_size_gb < 10:
@@ -73,13 +86,25 @@ def encrypted_instance_config(
             "限定公開 IP か許可ネットワークのどちらかは要る。両方無いと誰も接続できない"
         )
 
+    checked_networks = []
+    for cidr in sorted(set(authorized_networks)):
+        try:
+            network = ipaddress.ip_network(cidr, strict=True)
+        except ValueError as exc:
+            raise ValueError(f"許可ネットワークの CIDR が不正: {cidr!r}") from exc
+        if network.prefixlen == 0:
+            raise ValueError(
+                f"公開 IP を全世界に開けない: {cidr}。接続元の範囲を絞る"
+            )
+        checked_networks.append(str(network))
+
     ip_configuration: dict = {
-        "ipv4Enabled": bool(authorized_networks),
+        "ipv4Enabled": bool(checked_networks),
         # 接続は TLS 必須にする。requireSsl は非推奨で sslMode と併用できない
         "sslMode": "ENCRYPTED_ONLY",
         "authorizedNetworks": [
             {"name": f"allow-{index}", "value": cidr}
-            for index, cidr in enumerate(sorted(set(authorized_networks)))
+            for index, cidr in enumerate(checked_networks)
         ],
     }
     if private_network is not None:

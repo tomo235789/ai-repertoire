@@ -15,6 +15,8 @@ MAX_LOCK_SECONDS = 300
 # 重複検出の窓は 20 秒から 7 日まで
 MIN_DUPLICATE_DETECTION_SECONDS = 20
 MAX_DUPLICATE_DETECTION_SECONDS = 7 * 86400
+# パーティション分割しないキューで選べる容量（MB）
+ALLOWED_SIZES_MEGABYTES = (1024, 2048, 3072, 4096, 5120)
 
 
 def _iso_duration(seconds: int) -> str:
@@ -50,14 +52,14 @@ def fifo_queue_with_dlq(
         max_delivery_count: この回数まで配信して駄目なら配信不能キューへ送る
         message_ttl_seconds: メッセージの寿命
         duplicate_detection_seconds: 重複検出の窓。0 で無効
-        max_size_megabytes: キューの最大サイズ
+        max_size_megabytes: キューの最大サイズ。ALLOWED_SIZES_MEGABYTES のいずれか
 
     Returns:
         SBQueue のプロパティにそのまま渡せる dict
 
     Raises:
         ValueError: 名前の形式違い、ロック時間が 1〜300 の外、配信回数が 1 未満、
-            寿命が重複検出の窓以下、サイズが 1 未満の場合
+            寿命が重複検出の窓以下、サイズが対応値以外の場合
     """
     if not _NAME_RE.match(name):
         raise ValueError(f"キュー名の形式が不正: {name!r}")
@@ -65,8 +67,10 @@ def fifo_queue_with_dlq(
         raise ValueError(f"ロック時間は 1〜{MAX_LOCK_SECONDS} 秒: {lock_seconds}")
     if max_delivery_count < 1:
         raise ValueError(f"配信回数は 1 以上: {max_delivery_count}")
-    if max_size_megabytes < 1:
-        raise ValueError(f"最大サイズは 1 MB 以上: {max_size_megabytes}")
+    if max_size_megabytes not in ALLOWED_SIZES_MEGABYTES:
+        raise ValueError(
+            f"最大サイズは {ALLOWED_SIZES_MEGABYTES} のいずれか: {max_size_megabytes}"
+        )
     if duplicate_detection_seconds != 0 and not (
         MIN_DUPLICATE_DETECTION_SECONDS
         <= duplicate_detection_seconds

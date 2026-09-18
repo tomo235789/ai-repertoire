@@ -31,7 +31,8 @@ def backup_retention_config(
         start_time: バックアップ開始時刻。UTC の "HH:MM"
         retained_backups: 残す自動バックアップの数。7〜365
         point_in_time_recovery: ポイントインタイム復旧を有効にするか
-        transaction_log_retention_days: トランザクションログの保持日数。1〜35
+        transaction_log_retention_days: トランザクションログの保持日数。1〜7
+            （Enterprise エディションの上限。Enterprise Plus なら 35 日まで伸ばせる）
         location: バックアップの保存先。None ならインスタンスと同じ多リージョン
 
     Returns:
@@ -39,7 +40,7 @@ def backup_retention_config(
 
     Raises:
         ValueError: 時刻の形式違い、保持数が 7〜365 の外、
-            ログ保持日数が 1〜35 の外、
+            ログ保持日数が 1〜7 の外、
             ポイントインタイム復旧を切ってログ保持だけ指定した場合
     """
     if not _TIME_RE.match(start_time):

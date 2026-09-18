@@ -28,6 +28,8 @@ cfg = service_identity_config(
 iam.projects().serviceAccounts().create(
     name="projects/my-project", body=cfg["service_account"]
 ).execute()
+add_bindings("projects/my-project", cfg["bindings"])   # 権限を与える
+add_bindings(cfg["workload_identity_binding"]["resource"], [cfg["workload_identity_binding"]])
 ```
 
 ## Contract
@@ -53,7 +55,7 @@ iam.projects().serviceAccounts().create(
 - サービスアカウントキー（JSON）は作らない。漏れたら誰でもその ID になれる。Workload Identity か付与済みの実行環境の ID を使う
 - Workload Identity のメンバー表記は `serviceAccount:<project>.svc.id.goog[<namespace>/<ksa>]`。先頭の `serviceAccount:` を落とすと無効。クラスタ側の注釈も合わせないと効かない
 - サービスアカウントを消しても、同じ名前で作り直すと内部 ID が変わる。付与済みのバインディングは無効なまま残る
-- `roles/iam.serviceAccountTokenCreator` と `roles/iam.serviceAccountUser` は、対象のサービスアカウント 1 つだけをリソースにして与える。プロジェクトに与えるとプロジェクト内の全サービスアカウントになりすませる
+- `roles/iam.serviceAccountTokenCreator` と `roles/iam.serviceAccountUser` は、対象のサービスアカウント 1 つをリソースにして与える（`projects/<p>/serviceAccounts/<sa>` へのバインディング）。プロジェクトに与えるとプロジェクト内の全サービスアカウントになりすませるので、この関数は明示的な許可なしには通さない
 - プロジェクトの既定サービスアカウントには編集者ロールが付いていることがある。組織ポリシー `constraints/iam.automaticIamGrantsForDefaultServiceAccounts` で抑止できる。いずれにせよワークロードには専用のものを作る
 
 ## Test

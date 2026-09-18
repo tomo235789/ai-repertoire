@@ -48,7 +48,7 @@ def container_service_config(
         vpc_connector: VPC コネクタの名前。VPC 内のリソースへ出るとき
 
     Returns:
-        service と iam_policy を持つ dict
+        service_id（作成時の ID）、service（本体）、iam_policy を持つ dict
 
     Raises:
         ValueError: 名前やイメージの形式違い、latest タグ、CPU やメモリの形式違い、
@@ -103,6 +103,8 @@ def container_service_config(
     )
 
     return {
+        # create_service の service_id にそのまま渡す
+        "service_id": name,
         "service": {"template": template, "ingress": ingress},
         "iam_policy": iam_policy,
     }

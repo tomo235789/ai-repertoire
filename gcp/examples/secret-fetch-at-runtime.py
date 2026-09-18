@@ -12,6 +12,7 @@ import re
 _SECRET_RE = re.compile(r"^[a-zA-Z0-9_-]{1,255}$")
 _ENV_RE = re.compile(r"^[A-Z][A-Z0-9_]*$")
 _PROJECT_RE = re.compile(r"^[a-z][a-z0-9-]{4,28}[a-z0-9]$")
+_SERVICE_ACCOUNT_RE = re.compile(r"^[a-z0-9-]+@[a-z0-9-]+\.iam\.gserviceaccount\.com$")
 
 SECRET_ACCESSOR_ROLE = "roles/secretmanager.secretAccessor"
 
@@ -57,8 +58,11 @@ def runtime_secret_config(
     """
     if not secrets:
         raise ValueError("secrets は 1 件以上必要")
-    if "@" not in service_account:
-        raise ValueError(f"サービスアカウントはメールアドレスで指定する: {service_account!r}")
+    if not _SERVICE_ACCOUNT_RE.match(service_account):
+        raise ValueError(
+            "サービスアカウントは <name>@<project>.iam.gserviceaccount.com を指定する: "
+            f"{service_account!r}"
+        )
     pin_versions = dict(pin_versions or {})
     unknown = set(pin_versions) - set(secrets)
     if unknown:

@@ -12,6 +12,10 @@ _NAME_RE = re.compile(r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$")
 # Container Apps の CPU とメモリは 0.25 コアあたり 0.5 GiB の比で固定されている
 _MEMORY_GIB_PER_CPU = 2.0
 _ALLOWED_CPU = (0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0)
+_UAMI_RE = re.compile(
+    r"^/subscriptions/[^/]+/resourceGroups/[^/]+"
+    r"/providers/Microsoft\.ManagedIdentity/userAssignedIdentities/[^/]+$"
+)
 
 
 def container_service_config(
@@ -48,11 +52,13 @@ def container_service_config(
 
     Raises:
         ValueError: 名前の形式違い、イメージにタグが無いか latest、ポートが範囲外、
-            CPU が許可された値でない、レプリカ数が不正な場合
+            CPU が許可された値でない、レプリカ数が不正、
+            registry_identity が "system" でも ARM リソース ID でもない場合
     """
     if not _NAME_RE.match(name) or not 2 <= len(name) <= 32:
         raise ValueError(f"Container App 名は英小文字・数字・ハイフンで 2〜32 文字: {name!r}")
-    if ":" not in image.rsplit("/", 1)[-1]:
+    image_ref = image.rsplit("/", 1)[-1]
+    if "@" not in image_ref and (":" not in image_ref or not image_ref.rsplit(":", 1)[-1]):
         raise ValueError(f"イメージにタグを付ける（ダイジェスト固定が望ましい）: {image!r}")
     if image.rsplit(":", 1)[-1] == "latest":
         raise ValueError("latest タグはリビジョンを再現できないので使わない")
@@ -76,6 +82,11 @@ def container_service_config(
             "traffic": [{"latestRevision": True, "weight": 100}],
         },
     }
+    if registry_identity != "system" and not _UAMI_RE.match(registry_identity):
+        raise ValueError(
+            "registry_identity は \"system\" かユーザー割り当て ID の ARM リソース ID: "
+            f"{registry_identity!r}"
+        )
     if registry_server is not None:
         # パスワードを持たせず、マネージド ID でレジストリに認証する
         configuration["registries"] = [
@@ -90,8 +101,17 @@ def container_service_config(
     if env:
         container["env"] = [{"name": k, "value": v} for k, v in sorted(env.items())]
 
+    if registry_identity == "system":
+        identity: dict = {"type": "SystemAssigned"}
+    else:
+        # レジストリをユーザー割り当て ID で引くなら、その ID をアプリにも付ける
+        identity = {
+            "type": "SystemAssigned, UserAssigned",
+            "userAssignedIdentities": {registry_identity: {}},
+        }
+
     return {
-        "identity": {"type": "SystemAssigned"},
+        "identity": identity,
         "properties": {
             "managedEnvironmentId": managed_environment_id,
             "configuration": configuration,

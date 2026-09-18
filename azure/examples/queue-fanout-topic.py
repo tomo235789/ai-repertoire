@@ -9,9 +9,12 @@ from __future__ import annotations
 
 import re
 
-_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._\-/]{0,258}[A-Za-z0-9]$")
+_NAME_RE = re.compile(r"^[A-Za-z0-9]([A-Za-z0-9._\-/]{0,258}[A-Za-z0-9])?$")
 # サブスクリプション名はトピック名より短く、スラッシュを含められない
-_SUBSCRIPTION_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,48}[A-Za-z0-9]$|^[A-Za-z0-9]$")
+_SUBSCRIPTION_NAME_RE = re.compile(r"^[A-Za-z0-9]([A-Za-z0-9._-]{0,48}[A-Za-z0-9])?$")
+# ルール名は最大 50 文字。"-filter" の 7 文字を足しても収まる長さに抑える
+_RULE_SUFFIX = "-filter"
+MAX_FILTERED_SUBSCRIPTION_NAME = 50 - len(_RULE_SUFFIX)
 # 重複検出の窓の上限は 7 日
 MAX_DUPLICATE_DETECTION_DAYS = 7
 # サブスクリプション作成時に自動で入る全通過ルールの名前
@@ -81,8 +84,15 @@ def fanout_topic(
                 f"サブスクリプション名は英数字・ピリオド・ハイフン・アンダースコアで"
                 f" 1〜50 文字: {sub_name!r}"
             )
-        if filter_expression is not None and ";" in filter_expression:
-            raise ValueError(f"フィルタ式に ; は使えない: {filter_expression!r}")
+        if filter_expression is not None:
+            if ";" in filter_expression:
+                raise ValueError(f"フィルタ式に ; は使えない: {filter_expression!r}")
+            if len(sub_name) > MAX_FILTERED_SUBSCRIPTION_NAME:
+                raise ValueError(
+                    "フィルタを付ける購読の名前は"
+                    f" {MAX_FILTERED_SUBSCRIPTION_NAME} 文字まで（ルール名が 50 文字を超える）:"
+                    f" {sub_name!r}"
+                )
         entry: dict = {
             "properties": {
                 "defaultMessageTimeToLive": _iso_days(message_ttl_days),
@@ -100,7 +110,7 @@ def fanout_topic(
         if filter_expression is not None:
             entry["default_rule_to_delete"] = DEFAULT_RULE_NAME
             entry["rule"] = {
-                "name": f"{sub_name}-filter",
+                "name": f"{sub_name}{_RULE_SUFFIX}",
                 "properties": {
                     "filterType": "SqlFilter",
                     "sqlFilter": {"sqlExpression": filter_expression},

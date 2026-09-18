@@ -45,6 +45,11 @@ def test_scaling_and_concurrency():
     assert template["max_instance_request_concurrency"] == 40
 
 
+def test_service_id_returned():
+    """作成時に渡す ID を本体とは別に返す"""
+    assert _cfg()["service_id"] == "example-api"
+
+
 def test_service_account_required_in_template():
     """実行に使うサービスアカウントが必ず入る"""
     assert _cfg()["service"]["template"]["service_account"] == SA

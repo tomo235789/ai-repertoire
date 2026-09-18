@@ -75,6 +75,13 @@ def test_ttl_must_exceed_duplicate_window():
         fifo_queue_with_dlq("orders", message_ttl_seconds=600, duplicate_detection_seconds=600)
 
 
+def test_size_limited_to_supported_values():
+    """キューの容量は対応値だけ"""
+    with pytest.raises(ValueError, match="最大サイズ"):
+        fifo_queue_with_dlq("orders", max_size_megabytes=1)
+    assert fifo_queue_with_dlq("orders", max_size_megabytes=5120)["maxSizeInMegabytes"] == 5120
+
+
 def test_invalid_inputs():
     """名前・配信回数・サイズの不正は ValueError"""
     with pytest.raises(ValueError):

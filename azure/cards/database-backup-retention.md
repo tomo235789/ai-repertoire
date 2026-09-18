@@ -23,9 +23,9 @@ def backup_retention_config(*, retention_days: int = 35, geo_redundant: bool = T
 ```python
 cfg = backup_retention_config(weekly_retention_weeks=12, yearly_retention_years=5)
 client.servers.begin_update(
-    "example-rg", "example-db", {"properties": {"backup": cfg["backup"]}}
+    "example-rg", "example-db", {"properties": {"backup": cfg["backup_on_update"]}}
 ).result()
-# 長期保持はサーバー更新では効かない。サービスに応じた別の API に渡す
+# 長期保持はサーバー更新では効かない。Azure Backup / SQL の別 API に渡す
 apply_long_term_retention(cfg["long_term_retention"])
 ```
 
@@ -33,7 +33,8 @@ apply_long_term_retention(cfg["long_term_retention"])
 
 - 自動バックアップの保持日数は 7〜35 日。既定は 35 日で、地理冗長は既定で有効
 - 長期保持は ISO 8601 の duration。使わない期間は `"PT0S"` になる
-- `backup` はサーバーの更新に渡す。`long_term_retention` はサーバー更新では適用されない。Azure SQL Database なら `backupLongTermRetentionPolicies`、PostgreSQL フレキシブルサーバーなら Azure Backup のポリシーで設定する
+- `backup_on_create` は作成時の body。地理冗長は作成時にしか決められないので、`backup_on_update` には入らない
+- `long_term_retention` はサーバーの作成にも更新にも渡せない。Azure SQL Database なら `backupLongTermRetentionPolicies`、PostgreSQL フレキシブルサーバーなら Azure Backup のポリシーで設定する
 - 年次保持を指定しないと `weekOfYear` は `0` に落ちる
 - 週次の長期保持は自動バックアップの保持期間より長くする。短いと `ValueError`
 - `ValueError`: 保持日数が 7〜35 の外、週次が 1〜520 の外、月次が 1〜120 の外、年次が 1〜10 の外、週番号が 1〜52 の外
@@ -48,7 +49,7 @@ apply_long_term_retention(cfg["long_term_retention"])
 
 ## Pitfalls
 
-- 地理冗長バックアップはサーバー作成時にしか有効にできない。あとから切り替えられない
+- 地理冗長バックアップはサーバー作成時にしか決められない。更新の body に入れると、無効で作ったサーバーでは拒否される
 - 保持期間を縮めると、その期間より古い復元ポイントはすぐに消える。戻せなくなる
 - 長期保持のバックアップは自動バックアップとは別に課金される。年次を 10 年残すと積み上がる
 - 復元は新しいサーバーとして作られる。元のサーバーに上書きはできず、接続文字列も変わる

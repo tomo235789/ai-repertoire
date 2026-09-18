@@ -14,6 +14,9 @@ _NAME_RE = re.compile(r"^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$")
 _MAX_SAMPLE_RATE = 1.0
 # GCP が各サブネットで予約するアドレス数（ネットワーク、ゲートウェイ、予備、ブロードキャスト）
 RESERVED_ADDRESSES = 4
+# 主レンジも副レンジも /4 から /29 まで
+MIN_PREFIX_LENGTH = 4
+MAX_PREFIX_LENGTH = 29
 
 
 def private_subnet_config(
@@ -41,7 +44,8 @@ def private_subnet_config(
         subnetworks.insert に渡せるリソースと、参考情報の usable_addresses
 
     Raises:
-        ValueError: 名前や CIDR の形式違い、ホスト部が残っている、/29 より小さい、
+        ValueError: 名前や CIDR の形式違い、ホスト部が残っている、
+            プレフィックス長が /4〜/29 の外、purpose が PRIVATE 以外、
             副レンジが主レンジや他の副レンジと重なる、サンプリング率が範囲外の場合
     """
     if not _NAME_RE.match(name):
@@ -55,8 +59,14 @@ def private_subnet_config(
         raise ValueError(f"CIDR が不正: {ip_cidr_range!r}") from exc
     if primary.version != 4:
         raise ValueError("IPv4 の CIDR を指定する")
-    if primary.prefixlen > 29:
-        raise ValueError(f"サブネットは /29 まで: {ip_cidr_range}")
+    if not MIN_PREFIX_LENGTH <= primary.prefixlen <= MAX_PREFIX_LENGTH:
+        raise ValueError(
+            f"サブネットは /{MIN_PREFIX_LENGTH}〜/{MAX_PREFIX_LENGTH}: {ip_cidr_range}"
+        )
+    if purpose != "PRIVATE":
+        raise ValueError(
+            f"この関数はワークロード用のサブネットだけを作る（purpose=PRIVATE）: {purpose!r}"
+        )
 
     secondary_list: list[dict] = []
     accepted_secondaries: list[tuple[str, ipaddress.IPv4Network]] = []
@@ -67,6 +77,12 @@ def private_subnet_config(
             secondary = ipaddress.ip_network(cidr, strict=True)
         except ValueError as exc:
             raise ValueError(f"副レンジの CIDR が不正: {cidr!r}") from exc
+        if secondary.version != 4:
+            raise ValueError(f"副レンジは IPv4 で指定する: {cidr!r}")
+        if not MIN_PREFIX_LENGTH <= secondary.prefixlen <= MAX_PREFIX_LENGTH:
+            raise ValueError(
+                f"副レンジは /{MIN_PREFIX_LENGTH}〜/{MAX_PREFIX_LENGTH}: {cidr}"
+            )
         if secondary.overlaps(primary):
             raise ValueError(f"副レンジが主レンジと重なる: {cidr} と {ip_cidr_range}")
         for accepted_name, accepted in accepted_secondaries:

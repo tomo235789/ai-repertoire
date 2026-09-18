@@ -86,6 +86,19 @@ def test_filter_expression_rejects_semicolon():
         fanout_topic("orders", {"billing": "a = 1; drop"})
 
 
+def test_filtered_subscription_name_limited_by_rule_name():
+    """ルール名は 50 文字まで。フィルタ付きの購読名は 43 文字に制限する"""
+    with pytest.raises(ValueError, match="43 文字"):
+        fanout_topic("orders", {"a" * 44: "x = 1"})
+    cfg = fanout_topic("orders", {"a" * 43: "x = 1"})
+    assert len(cfg["subscriptions"]["a" * 43]["rule"]["name"]) == 50
+
+
+def test_single_character_topic_name():
+    """1 文字のトピック名も Azure では有効"""
+    assert fanout_topic("a", {"audit": None})["topic"]
+
+
 def test_invalid_inputs():
     """名前・購読者・寿命・配信回数の不正は ValueError"""
     with pytest.raises(ValueError):

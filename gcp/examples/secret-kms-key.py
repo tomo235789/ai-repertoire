@@ -7,6 +7,7 @@ Cloud KMS の `keyRings.create` / `cryptoKeys.create` に渡すリソースと�
 from __future__ import annotations
 
 import re
+from datetime import datetime
 
 _NAME_RE = re.compile(r"^[a-zA-Z0-9_-]{1,63}$")
 _RFC3339_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$")
@@ -21,6 +22,9 @@ ALGORITHMS = ("GOOGLE_SYMMETRIC_ENCRYPTION",)
 ENCRYPTER_DECRYPTER_ROLE = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
 # 鍵の破棄を待つ日数の下限。短くすると誤破棄を取り消せない
 MIN_DESTROY_SCHEDULED_DAYS = 7
+MAX_DESTROY_SCHEDULED_DAYS = 120
+# ローテーション間隔の上限は 876,000 時間（100 年ぶん）
+MAX_ROTATION_PERIOD_DAYS = 876_000 // 24
 
 
 def customer_managed_key(
@@ -45,16 +49,16 @@ def customer_managed_key(
         next_rotation_time: 最初のローテーション時刻。RFC 3339 の UTC
         protection_level: PROTECTION_LEVELS のいずれか
         rotation_period_days: 自動ローテーションの間隔。1 日以上
-        destroy_scheduled_days: 破棄要求から実際に消えるまでの日数。7 日以上
+        destroy_scheduled_days: 破棄要求から実際に消えるまでの日数。7〜120
         encrypter_members: 鍵で暗号化・復号できるメンバー
 
     Returns:
         key_ring / crypto_key / iam_binding を持つ dict
 
     Raises:
-        ValueError: 名前の形式違い、未知の保護レベル、ローテーション間隔が 1 日未満、
-            破棄待ちが 7 日未満、メンバーの形式違い、
-            次回ローテーション時刻が RFC 3339 でない場合
+        ValueError: 名前の形式違い、未知の保護レベル、ローテーション間隔が範囲外、
+            破棄待ちが 7〜120 日の外、メンバーの形式違い、
+            次回ローテーション時刻が RFC 3339 でないか実在しない場合
     """
     for label, value in (("key_ring", key_ring), ("key_name", key_name)):
         if not _NAME_RE.match(value):
@@ -63,13 +67,20 @@ def customer_managed_key(
         raise ValueError(
             f"次回ローテーション時刻は RFC 3339 の UTC で渡す: {next_rotation_time!r}"
         )
+    try:
+        datetime.strptime(next_rotation_time.split(".")[0].rstrip("Z"), "%Y-%m-%dT%H:%M:%S")
+    except ValueError as exc:
+        raise ValueError(f"次回ローテーション時刻が実在しない: {next_rotation_time!r}") from exc
     if protection_level not in PROTECTION_LEVELS:
         raise ValueError(f"保護レベルは {PROTECTION_LEVELS} のいずれか: {protection_level!r}")
-    if rotation_period_days < 1:
-        raise ValueError(f"ローテーション間隔は 1 日以上: {rotation_period_days}")
-    if destroy_scheduled_days < MIN_DESTROY_SCHEDULED_DAYS:
+    if not 1 <= rotation_period_days <= MAX_ROTATION_PERIOD_DAYS:
         raise ValueError(
-            f"破棄待ちは {MIN_DESTROY_SCHEDULED_DAYS} 日以上: {destroy_scheduled_days}"
+            f"ローテーション間隔は 1〜{MAX_ROTATION_PERIOD_DAYS} 日: {rotation_period_days}"
+        )
+    if not MIN_DESTROY_SCHEDULED_DAYS <= destroy_scheduled_days <= MAX_DESTROY_SCHEDULED_DAYS:
+        raise ValueError(
+            f"破棄待ちは {MIN_DESTROY_SCHEDULED_DAYS}〜{MAX_DESTROY_SCHEDULED_DAYS} 日:"
+            f" {destroy_scheduled_days}"
         )
     members = sorted(set(encrypter_members))
     for member in members:

@@ -81,6 +81,15 @@ def test_order_enforced():
         lifecycle_rules(transitions={"NEARLINE": 30}, delete_after_days=30)
 
 
+def test_minimum_duration_counts_from_creation():
+    """最低保存期間は前の階層での経過も算入されるので、作成からの日数で見る"""
+    # 30 日で Archive に移し、作成から 365 日で削除するのは有効
+    rules = lifecycle_rules(transitions={"ARCHIVE": 30}, delete_after_days=365)
+    assert rules[-2]["condition"]["age"] == 365
+    with pytest.raises(ValueError, match="最低保存期間"):
+        lifecycle_rules(transitions={"ARCHIVE": 30}, delete_after_days=364)
+
+
 def test_invalid_inputs():
     """未知のクラス、STANDARD への移行、負の値は ValueError"""
     with pytest.raises(ValueError):

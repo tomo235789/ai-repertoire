@@ -22,9 +22,18 @@ KEY = "projects/my-project/locations/asia-northeast1/keyRings/app-ring/cryptoKey
 
 
 def _cfg(**kw):
-    kwargs = {"private_network": NETWORK}
+    kwargs = {"private_network": NETWORK, "project_id": "my-project"}
     kwargs.update(kw)
     return encrypted_instance_config("example-db", "asia-northeast1", **kwargs)
+
+
+def test_connection_name_length_limited():
+    """<プロジェクト>:<インスタンス> は 98 文字まで"""
+    with pytest.raises(ValueError, match="98 文字"):
+        encrypted_instance_config(
+            "a" * 90, "asia-northeast1",
+            project_id="my-project", private_network=NETWORK,
+        )
 
 
 def test_private_ip_only_by_default():
@@ -63,17 +72,34 @@ def test_google_managed_key_by_default():
 def test_authorized_networks_sorted_and_enable_public_ip():
     """許可 CIDR を渡すと公開 IP が有効になり、CIDR 順に並ぶ"""
     ip = encrypted_instance_config(
-        "example-db", "asia-northeast1",
+        "example-db", "asia-northeast1", project_id="my-project",
         authorized_networks=["192.168.0.0/16", "10.0.0.0/8", "10.0.0.0/8"],
     )["settings"]["ipConfiguration"]
     assert ip["ipv4Enabled"] is True
     assert [n["value"] for n in ip["authorizedNetworks"]] == ["10.0.0.0/8", "192.168.0.0/16"]
 
 
+def test_open_authorized_network_rejected():
+    """公開 IP を全世界に開けない"""
+    for cidr in ("0.0.0.0/0", "::/0"):
+        with pytest.raises(ValueError, match="全世界"):
+            encrypted_instance_config(
+                "example-db", "asia-northeast1",
+                project_id="my-project", authorized_networks=[cidr],
+            )
+    with pytest.raises(ValueError, match="CIDR"):
+        encrypted_instance_config(
+            "example-db", "asia-northeast1",
+            project_id="my-project", authorized_networks=["10.0.0.1/8"],
+        )
+
+
 def test_connectivity_required():
     """限定公開 IP も許可ネットワークも無いと ValueError"""
     with pytest.raises(ValueError, match="誰も接続できない"):
-        encrypted_instance_config("example-db", "asia-northeast1")
+        encrypted_instance_config(
+            "example-db", "asia-northeast1", project_id="my-project"
+        )
 
 
 def test_deletion_protection_cannot_be_disabled():
@@ -86,7 +112,10 @@ def test_deletion_protection_cannot_be_disabled():
 def test_invalid_inputs():
     """名前・版・ディスク・可用性の不正は ValueError"""
     with pytest.raises(ValueError):
-        encrypted_instance_config("Example_DB", "asia-northeast1", private_network=NETWORK)
+        encrypted_instance_config(
+            "Example_DB", "asia-northeast1",
+            project_id="my-project", private_network=NETWORK,
+        )
     with pytest.raises(ValueError):
         _cfg(database_version="postgres16")
     with pytest.raises(ValueError):

@@ -19,6 +19,9 @@ _DENY_PRIORITY = 65000
 MANAGEMENT_PORTS = frozenset({22, 3389, 5985, 5986})
 # Identity-Aware Proxy の TCP 転送が使う送信元レンジ
 IAP_SOURCE_RANGE = "35.235.240.0/20"
+# ファイアウォール名は 1〜63 文字。接尾辞を足しても収まる長さにタグを制限する
+MAX_FIREWALL_NAME = 63
+_LONGEST_SUFFIX = "-deny-all"
 
 
 def minimal_firewall_rules(
@@ -40,11 +43,17 @@ def minimal_firewall_rules(
         許可規則（優先度 1000）と全拒否規則（優先度 65000）のリスト
 
     Raises:
-        ValueError: 名前やタグの形式違い、allowed が空、ポートが範囲外、
-            CIDR の形式違い、管理用ポートを 0.0.0.0/0 に開こうとした場合
+        ValueError: タグの形式違い、タグが長すぎて規則名が 63 文字を超える、
+            allowed が空、ポートが範囲外、CIDR の形式違い、
+            管理用ポートを 0.0.0.0/0 に開こうとした場合
     """
     if not _NAME_RE.match(target_tag):
         raise ValueError(f"ネットワークタグの形式が不正: {target_tag!r}")
+    if len(target_tag) + len(_LONGEST_SUFFIX) > MAX_FIREWALL_NAME:
+        raise ValueError(
+            "規則名が 63 文字を超える。ネットワークタグは"
+            f" {MAX_FIREWALL_NAME - len(_LONGEST_SUFFIX)} 文字までにする: {target_tag!r}"
+        )
     if protocol not in {"tcp", "udp"}:
         raise ValueError(f"protocol は tcp か udp: {protocol!r}")
     allowed = tuple(allowed)

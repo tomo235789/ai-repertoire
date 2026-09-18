@@ -28,7 +28,7 @@ cfg = container_service_config(
 )
 client.create_service(
     parent="projects/my-project/locations/asia-northeast1",
-    service_id="example-api", service=cfg["service"],
+    service_id=cfg["service_id"], service=cfg["service"],
 )
 ```
 

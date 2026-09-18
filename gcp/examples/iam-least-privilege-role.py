@@ -12,16 +12,24 @@ _PERMISSION_RE = re.compile(r"^[a-z][a-zA-Z0-9]*\.[a-zA-Z0-9.]+\.[a-zA-Z]+$")
 
 _STAGES = ("ALPHA", "BETA", "GA", "DEPRECATED", "DISABLED")
 
-# 付けると他のロールを自由に足せてしまう権限
+# 付けると他のロールを自由に足せる、または他の ID になりすませる権限。
+# 個別の名前だけでは取りこぼすので、動詞の側でも捕まえる
 PRIVILEGE_ESCALATING_PERMISSIONS = frozenset(
     {
-        "resourcemanager.projects.setIamPolicy",
+        "iam.roles.create",
         "iam.roles.update",
         "iam.serviceAccounts.actAs",
         "iam.serviceAccounts.getAccessToken",
+        "iam.serviceAccounts.getOpenIdToken",
+        "iam.serviceAccounts.implicitDelegation",
+        "iam.serviceAccounts.signBlob",
+        "iam.serviceAccounts.signJwt",
         "iam.serviceAccountKeys.create",
+        "deploymentmanager.deployments.create",
     }
 )
+# 末尾がこれらの権限は、対象が何であれ IAM を書き換えられる
+_ESCALATING_SUFFIXES = (".setIamPolicy",)
 
 
 def least_privilege_role(
@@ -66,7 +74,12 @@ def least_privilege_role(
         if not _PERMISSION_RE.match(permission):
             raise ValueError(f"権限の形式が不正: {permission!r}")
 
-    escalating = sorted(set(unique) & PRIVILEGE_ESCALATING_PERMISSIONS)
+    escalating = sorted(
+        permission
+        for permission in unique
+        if permission in PRIVILEGE_ESCALATING_PERMISSIONS
+        or permission.endswith(_ESCALATING_SUFFIXES)
+    )
     if escalating and not allow_privilege_escalation:
         raise ValueError(
             f"権限昇格につながる権限が含まれる: {escalating}。"

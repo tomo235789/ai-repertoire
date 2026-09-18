@@ -10,6 +10,8 @@ import re
 
 _NAME_RE = re.compile(r"^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$")
 _DOMAIN_RE = re.compile(r"^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$")
+# バケット名は英小文字・数字・ハイフン・アンダースコア・ドットで 3〜63 文字
+_BUCKET_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{1,61}[a-z0-9]$")
 
 CACHE_MODES = ("CACHE_ALL_STATIC", "USE_ORIGIN_HEADERS", "FORCE_CACHE_ALL")
 # TLS の最低バージョンを決めるプロファイル
@@ -52,7 +54,7 @@ def static_site_config(
     """
     if not _NAME_RE.match(name):
         raise ValueError(f"名前の形式が不正: {name!r}")
-    if not _NAME_RE.match(bucket_name) and "." not in bucket_name:
+    if not _BUCKET_RE.match(bucket_name) or ".." in bucket_name:
         raise ValueError(f"バケット名の形式が不正: {bucket_name!r}")
     unique_domains = sorted(set(domains))
     if not unique_domains:
@@ -91,7 +93,8 @@ def static_site_config(
         "backend_bucket": backend_bucket,
         "url_map": {
             "name": f"{name}-url-map",
-            "defaultService": f"{name}-backend",
+            # リソース参照は部分 URL で渡す。裸の名前では解決できない
+            "defaultService": f"global/backendBuckets/{name}-backend",
         },
         "ssl_certificate": {
             "name": f"{name}-cert",
@@ -101,13 +104,13 @@ def static_site_config(
         "ssl_policy": {"name": f"{name}-ssl-policy", **SSL_POLICY},
         "target_proxy": {
             "name": f"{name}-https-proxy",
-            "urlMap": f"{name}-url-map",
-            "sslCertificates": [f"{name}-cert"],
-            "sslPolicy": f"{name}-ssl-policy",
+            "urlMap": f"global/urlMaps/{name}-url-map",
+            "sslCertificates": [f"global/sslCertificates/{name}-cert"],
+            "sslPolicy": f"global/sslPolicies/{name}-ssl-policy",
         },
         "forwarding_rule": {
             "name": f"{name}-https",
-            "target": f"{name}-https-proxy",
+            "target": f"global/targetHttpsProxies/{name}-https-proxy",
             "portRange": "443",
             "loadBalancingScheme": "EXTERNAL_MANAGED",
         },
@@ -123,11 +126,11 @@ def static_site_config(
         },
         "http_target_proxy": {
             "name": f"{name}-http-proxy",
-            "urlMap": f"{name}-http-redirect",
+            "urlMap": f"global/urlMaps/{name}-http-redirect",
         },
         "http_forwarding_rule": {
             "name": f"{name}-http",
-            "target": f"{name}-http-proxy",
+            "target": f"global/targetHttpProxies/{name}-http-proxy",
             "portRange": "80",
             "loadBalancingScheme": "EXTERNAL_MANAGED",
         },

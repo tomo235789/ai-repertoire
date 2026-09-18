@@ -90,6 +90,12 @@ def test_invalid_inputs():
         runtime_secret_config("my-project", {"DB_PASSWORD": "db-password"}, "app-runner")
 
 
+def test_service_account_must_be_gserviceaccount():
+    """人のメールアドレスはサービスアカウントとして受け付けない"""
+    with pytest.raises(ValueError, match="gserviceaccount"):
+        runtime_secret_config("my-project", {"A": "a"}, "user@example.com")
+
+
 def test_pure_and_serializable():
     """引数を変更せず、返り値は JSON にできる"""
     secrets = {"DB_PASSWORD": "db-password"}

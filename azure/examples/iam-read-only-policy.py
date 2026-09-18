@@ -21,6 +21,12 @@ SECRET_REVEALING_ACTIONS = (
     "Microsoft.KeyVault/vaults/secrets/read",
     "Microsoft.KeyVault/vaults/keys/read",
 )
+# notActions は管理プレーンにしか効かないので、データプレーンの側は入力時に弾く
+SECRET_REVEALING_DATA_ACTIONS = (
+    "Microsoft.KeyVault/vaults/secrets/getSecret/action",
+    "Microsoft.KeyVault/vaults/keys/read",
+    "Microsoft.KeyVault/vaults/secrets/readMetadata/action",
+)
 
 
 def read_only_role(
@@ -45,7 +51,7 @@ def read_only_role(
 
     Raises:
         ValueError: providers か assignable_scopes が空、プロバイダ名やスコープの形式違い、
-            書き込み系の操作を data_read_actions に混ぜた場合
+            書き込み系の操作や秘密を読める操作を data_read_actions に混ぜた場合
     """
     providers = tuple(providers)
     assignable_scopes = tuple(assignable_scopes)
@@ -64,6 +70,10 @@ def read_only_role(
     for action in data_read_actions:
         if not action.endswith("/read"):
             raise ValueError(f"データプレーンにも読み取り以外は入れられない: {action!r}")
+        if action.startswith("Microsoft.KeyVault/") or action in SECRET_REVEALING_DATA_ACTIONS:
+            raise ValueError(
+                f"秘密そのものを読める操作は読み取り専用に入れられない: {action!r}"
+            )
 
     actions = sorted(f"{provider}/*/read" for provider in providers)
     role_definition_id = str(

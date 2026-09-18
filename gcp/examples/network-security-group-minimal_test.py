@@ -69,6 +69,14 @@ def test_https_from_anywhere_allowed():
     assert _rules([("0.0.0.0/0", 443)])[0]["allowed"][0]["ports"] == ["443"]
 
 
+def test_tag_length_limited_by_rule_name():
+    """規則名が 63 文字を超えるタグは弾く"""
+    with pytest.raises(ValueError, match="63 文字"):
+        minimal_firewall_rules("example-vpc", "a" * 56, [("10.0.0.0/8", 443)])
+    rules = minimal_firewall_rules("example-vpc", "a" * 54, [("10.0.0.0/8", 443)])
+    assert all(len(rule["name"]) <= 63 for rule in rules)
+
+
 def test_invalid_inputs():
     """タグ・許可リスト・ポート・CIDR・プロトコルの不正は ValueError"""
     with pytest.raises(ValueError):

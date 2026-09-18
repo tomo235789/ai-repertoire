@@ -98,6 +98,12 @@ def test_invalid_inputs():
         container_service_config("example-api", IMAGE, ENV_ID, min_replicas=5, max_replicas=1)
 
 
+def test_empty_tag_rejected():
+    """コロンだけでタグが空のイメージは弾く"""
+    with pytest.raises(ValueError, match="タグ"):
+        container_service_config("example-api", "example.azurecr.io/api:", ENV_ID)
+
+
 def test_pure_and_serializable():
     """引数を変更せず、返り値は JSON にできる"""
     env = {"A": "1"}
