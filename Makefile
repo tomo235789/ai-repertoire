@@ -3,7 +3,7 @@ BASE_URL ?=
 # 公開リポジトリ（origin が tomo235789/ai-repertoire）では CI と同じく --public-only を付ける
 VALIDATE_FLAGS ?= $(shell git remote get-url origin 2>/dev/null | grep -qE 'tomo235789/ai-repertoire(\.git)?$$' && echo --public-only)
 
-.PHONY: validate build site test test-ts test-py test-go test-cs test-react test-cpp test-ruby test-rust test-sql test-tf test-aws clean
+.PHONY: validate build site test test-ts test-py test-go test-cs test-react test-cpp test-ruby test-rust test-sql test-tf test-aws test-gcp test-azure clean
 
 ## カードの検証（PR の CI と同じ）
 validate:
@@ -18,7 +18,7 @@ site: build
 	scripts/build_site.sh
 
 ## examples のテストをすべて実行
-test: test-ts test-py test-go test-cs test-react test-cpp test-ruby test-rust test-sql test-tf test-aws
+test: test-ts test-py test-go test-cs test-react test-cpp test-ruby test-rust test-sql test-tf test-aws test-gcp test-azure
 
 test-ts:
 	cd typescript && npm test
@@ -52,6 +52,12 @@ test-tf:
 
 test-aws:
 	@if [ -d aws/examples ]; then cd aws && pytest -q; else echo "aws/examples が無いためスキップ"; fi
+
+test-gcp:
+	@if [ -d gcp/examples ]; then cd gcp && pytest -q; else echo "gcp/examples が無いためスキップ"; fi
+
+test-azure:
+	@if [ -d azure/examples ]; then cd azure && pytest -q; else echo "azure/examples が無いためスキップ"; fi
 
 clean:
 	rm -rf reference llms.txt site _site

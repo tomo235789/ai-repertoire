@@ -174,3 +174,27 @@ jobs:
       - name: pytest（aws/examples が無ければスキップ）
         run: |
           if [ -d aws/examples ]; then pip install -r aws/requirements.txt && cd aws && pytest -q; else echo "aws/examples が無いためスキップ"; fi
+
+  gcp:
+    name: gcp/examples (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: pytest（gcp/examples が無ければスキップ）
+        run: |
+          if [ -d gcp/examples ]; then pip install -r gcp/requirements.txt && cd gcp && pytest -q; else echo "gcp/examples が無いためスキップ"; fi
+
+  azure:
+    name: azure/examples (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: pytest（azure/examples が無ければスキップ）
+        run: |
+          if [ -d azure/examples ]; then pip install -r azure/requirements.txt && cd azure && pytest -q; else echo "azure/examples が無いためスキップ"; fi

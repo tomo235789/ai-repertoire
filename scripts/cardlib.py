@@ -17,7 +17,12 @@ FIXED_HEADINGS: Tuple[str, ...] = ("Signature", "Usage", "Contract", "Alternativ
 REQUIRED_HEADINGS: Tuple[str, ...] = ("Signature", "Usage", "Contract", "Test")
 
 # 対応表・index の列順
-LANG_ORDER: Tuple[str, ...] = ("typescript", "python", "go", "csharp", "cpp", "react", "ruby", "rust", "sql")
+LANG_ORDER: Tuple[str, ...] = (
+    # 言語（用途語から引く側）
+    "typescript", "python", "go", "csharp", "cpp", "react", "ruby", "rust", "sql",
+    # クラウド（要求 → 設定の純粋関数）
+    "terraform", "aws", "gcp", "azure",
+)
 LANG_LABEL: Dict[str, str] = {
     "typescript": "TypeScript",
     "python": "Python",
@@ -28,6 +33,10 @@ LANG_LABEL: Dict[str, str] = {
     "ruby": "Ruby",
     "rust": "Rust",
     "sql": "SQL",
+    "terraform": "Terraform",
+    "aws": "AWS",
+    "gcp": "GCP",
+    "azure": "Azure",
 }
 
 _HEADING_RE = re.compile(r"^## (.+?)\s*$")
