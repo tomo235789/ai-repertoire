@@ -56,6 +56,8 @@ cpp/                         SKILL.md, cards/, examples/（g++-14 -std=c++23、s
 ruby/                        SKILL.md, cards/, examples/（minitest）
 rust/                        SKILL.md, cards/, tests/（cargo test、itertools + chrono）
 sql/                         SKILL.md, cards/（lib は方言）, examples/（pytest で sqlite と duckdb に実行）
+terraform/                   SKILL.md, cards/, modules/<id>/（provider を持たない純粋な module + tftest）
+aws/                         SKILL.md, cards/, examples/（「要求 → 設定」の純粋関数。pytest）
 .github/workflows/           validate.yml（PR）, publish.yml（main → Pages）
 ```
 

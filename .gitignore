@@ -18,3 +18,9 @@ obj/
 # Rust / C++
 target/
 cpp/build/
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*

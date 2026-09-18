@@ -148,3 +148,29 @@ jobs:
         run: |
           if [ -d sql/examples ]; then pip install -r sql/requirements.txt && cd sql && pytest -q; else echo "sql/examples が無いためスキップ"; fi
 
+  terraform:
+    name: terraform/modules (validate + tflint + test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.15.8"
+      - uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: v0.64.0
+      - name: terraform（terraform/modules が無ければスキップ）
+        run: |
+          if [ -d terraform/modules ]; then cd terraform && tflint --init && ./run_tests.sh; else echo "terraform/modules が無いためスキップ"; fi
+
+  aws:
+    name: aws/examples (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: pytest（aws/examples が無ければスキップ）
+        run: |
+          if [ -d aws/examples ]; then pip install -r aws/requirements.txt && cd aws && pytest -q; else echo "aws/examples が無いためスキップ"; fi
