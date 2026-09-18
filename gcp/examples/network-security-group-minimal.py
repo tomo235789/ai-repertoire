@@ -49,11 +49,7 @@ def minimal_firewall_rules(
     """
     if not _NAME_RE.match(target_tag):
         raise ValueError(f"ネットワークタグの形式が不正: {target_tag!r}")
-    if len(target_tag) + len(_LONGEST_SUFFIX) > MAX_FIREWALL_NAME:
-        raise ValueError(
-            "規則名が 63 文字を超える。ネットワークタグは"
-            f" {MAX_FIREWALL_NAME - len(_LONGEST_SUFFIX)} 文字までにする: {target_tag!r}"
-        )
+
     if protocol not in {"tcp", "udp"}:
         raise ValueError(f"protocol は tcp か udp: {protocol!r}")
     allowed = tuple(allowed)
@@ -75,6 +71,14 @@ def minimal_firewall_rules(
                 f"Identity-Aware Proxy の {IAP_SOURCE_RANGE} か踏み台を使う"
             )
         by_source.setdefault(str(network_obj), []).append(port)
+
+    # 許可規則の連番の桁数と "-deny-all" のうち、長い方が名前の上限を決める
+    longest_suffix = max(len(_LONGEST_SUFFIX), len(f"-allow-{len(by_source) - 1}"))
+    if len(target_tag) + longest_suffix > MAX_FIREWALL_NAME:
+        raise ValueError(
+            f"規則名が {MAX_FIREWALL_NAME} 文字を超える。ネットワークタグは"
+            f" {MAX_FIREWALL_NAME - longest_suffix} 文字までにする: {target_tag!r}"
+        )
 
     rules: list[dict] = []
     for index, (source, ports) in enumerate(sorted(by_source.items())):

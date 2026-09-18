@@ -77,6 +77,21 @@ def test_tag_length_limited_by_rule_name():
     assert all(len(rule["name"]) <= 63 for rule in rules)
 
 
+def test_rule_name_length_accounts_for_index_digits():
+    """許可規則が多いと連番が伸びるので、その桁数も見込んで名前の長さを見る"""
+    # 101 件だと接尾辞は "-allow-100" の 10 文字。タグは 53 文字までなら収まる
+    many = [(f"10.{i}.0.0/16", 443) for i in range(101)]
+    with pytest.raises(ValueError, match="63 文字"):
+        minimal_firewall_rules("example-vpc", "a" * 54, many)
+    rules = minimal_firewall_rules("example-vpc", "a" * 53, many)
+    assert all(len(rule["name"]) <= 63 for rule in rules)
+    # 少数なら "-deny-all" の 9 文字が上限を決める
+    few = [("10.0.0.0/8", 443)]
+    assert minimal_firewall_rules("example-vpc", "a" * 54, few)
+    with pytest.raises(ValueError, match="63 文字"):
+        minimal_firewall_rules("example-vpc", "a" * 55, few)
+
+
 def test_invalid_inputs():
     """タグ・許可リスト・ポート・CIDR・プロトコルの不正は ValueError"""
     with pytest.raises(ValueError):

@@ -12,7 +12,13 @@ _NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$")
 
 # 値が Key Vault 参照でなければならない設定名の語尾
 SECRET_NAME_SUFFIXES = ("password", "secret", "token", "apikey", "accesskey", "key")
-KEY_VAULT_REFERENCE_PREFIX = "@Microsoft.KeyVault("
+# 受け付ける参照は SecretUri 形式か VaultName + SecretName 形式のどちらか
+_KEY_VAULT_REFERENCE_RE = re.compile(
+    r"^@Microsoft\.KeyVault\("
+    r"(SecretUri=https://[^/\s)]+/secrets/[^/\s)]+(/[^/\s)]+)?"
+    r"|VaultName=[^;\s)]+;\s*SecretName=[^;\s)]+(;\s*SecretVersion=[^;\s)]+)?)"
+    r"\)$"
+)
 
 
 def _is_secret_name(key: str) -> bool:
@@ -81,7 +87,7 @@ def serverless_function_config(
             "accountkey=" in value.lower() or "sharedaccesskey=" in value.lower()
         )
         if looks_like_connection_string or (
-            _is_secret_name(key) and not value.startswith(KEY_VAULT_REFERENCE_PREFIX)
+            _is_secret_name(key) and not _KEY_VAULT_REFERENCE_RE.match(value)
         ):
             raise ValueError(
                 f"アプリ設定に秘密値を直接入れない（{key}）。Key Vault 参照を使う"

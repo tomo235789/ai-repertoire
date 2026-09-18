@@ -100,6 +100,15 @@ def test_secret_named_settings_require_key_vault_reference():
     assert any(s["name"] == "DB_PASSWORD" for s in cfg["properties"]["siteConfig"]["appSettings"])
 
 
+def test_key_vault_reference_must_be_complete():
+    """参照の形をしていない値は通さない"""
+    for bad in ("@Microsoft.KeyVault(hunter2)", "@Microsoft.KeyVault(SecretUri=hunter2)"):
+        with pytest.raises(ValueError, match="秘密値"):
+            _cfg(app_settings={"DB_PASSWORD": bad})
+    ok = "@Microsoft.KeyVault(VaultName=example-kv;SecretName=db-password)"
+    assert _cfg(app_settings={"DB_PASSWORD": ok})
+
+
 def test_pure_and_serializable():
     """引数を変更せず、返り値は JSON にできる"""
     extra = {"MY_FLAG": "on"}

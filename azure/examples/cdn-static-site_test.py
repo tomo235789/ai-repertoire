@@ -45,6 +45,15 @@ def test_origin_group_is_arm_id():
         static_site_config(ORIGIN, origin_group_id="static")
 
 
+def test_resource_ids_checked_to_the_leaf():
+    """オリジングループと独自ドメインは種別まで含めて検証する"""
+    wrong_type = ORIGIN_GROUP.replace("/originGroups/", "/afdEndpoints/")
+    with pytest.raises(ValueError, match="オリジングループ"):
+        static_site_config(ORIGIN, origin_group_id=wrong_type)
+    with pytest.raises(ValueError, match="独自ドメイン"):
+        _cfg(custom_domain_id=ORIGIN_GROUP)
+
+
 def test_https_is_enforced():
     """平文は HTTPS へ寄せ、オリジンへも HTTPS で繋ぐ"""
     cfg = _cfg()

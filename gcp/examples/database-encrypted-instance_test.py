@@ -81,8 +81,17 @@ def test_authorized_networks_sorted_and_enable_public_ip():
 
 def test_open_authorized_network_rejected():
     """公開 IP を全世界に開けない"""
-    for cidr in ("0.0.0.0/0", "::/0"):
-        with pytest.raises(ValueError, match="全世界"):
+    with pytest.raises(ValueError, match="全世界"):
+        encrypted_instance_config(
+            "example-db", "asia-northeast1",
+            project_id="my-project", authorized_networks=["0.0.0.0/0"],
+        )
+
+
+def test_ipv6_authorized_network_rejected():
+    """Cloud SQL の許可ネットワークは IPv4 だけ"""
+    for cidr in ("::/0", "2001:db8::/32"):
+        with pytest.raises(ValueError, match="IPv4"):
             encrypted_instance_config(
                 "example-db", "asia-northeast1",
                 project_id="my-project", authorized_networks=[cidr],

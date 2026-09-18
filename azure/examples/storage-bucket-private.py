@@ -61,7 +61,8 @@ def private_container_config(
         resource_group: リソースグループ名
         key_vault_key_uri: 顧客管理鍵の URI。省略すると Microsoft 管理鍵
         encryption_identity_id: 鍵を読むユーザー割り当て ID の ARM リソース ID。
-            作成と同時に顧客管理鍵を設定するには必須
+            作成と同時に顧客管理鍵を設定するには必須。
+            その ID に Key Vault の Crypto Service Encryption User を先に与えておく
         reader_principal_ids: 読み取りを許すプリンシパルのオブジェクト ID
         reader_principal_type: プリンシパルの種別。User / Group / ServicePrincipal
         tags: アカウントに付けるタグ

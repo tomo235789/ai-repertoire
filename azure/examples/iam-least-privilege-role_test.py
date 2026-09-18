@@ -108,6 +108,14 @@ def test_multiple_management_groups_rejected():
         least_privilege_role("R", "説明", [READ_BLOB], [mg1, mg2])
 
 
+def test_data_actions_cannot_use_management_group():
+    """データプレーンの操作を持つロールは管理グループに割り当てられない"""
+    mg = "/providers/Microsoft.Management/managementGroups/mg-a"
+    data = "Microsoft.Storage/storageAccounts/blobServices/containers/blobs/read"
+    with pytest.raises(ValueError, match="管理グループ"):
+        least_privilege_role("R", "説明", [READ_BLOB], [mg], data_actions=[data])
+
+
 def test_pure_and_serializable():
     """引数のリストを変更せず、返り値は JSON にできる"""
     actions = [READ_BLOB]

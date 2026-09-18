@@ -26,8 +26,8 @@ addition = read_only_policy(
     {"roles/storage.objectViewer": ["serviceAccount:app@my-project.iam.gserviceaccount.com"]},
     etag=current.etag,
 )
-for b in addition["bindings"]:                  # 全置換ではなく既存に足す
-    current[b["role"]] = set(current.get(b["role"], [])) | set(b["members"])
+# 全置換ではなく、取得したポリシーの bindings に足す
+current.bindings.extend(addition["bindings"])
 bucket.set_iam_policy(current)
 ```
 

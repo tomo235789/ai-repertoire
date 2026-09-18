@@ -12,6 +12,7 @@ _NAME_RE = re.compile(r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$")
 # Container Apps の CPU とメモリは 0.25 コアあたり 0.5 GiB の比で固定されている
 _MEMORY_GIB_PER_CPU = 2.0
 _ALLOWED_CPU = (0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0)
+_DIGEST_RE = re.compile(r"^[a-z0-9._-]+@sha256:[0-9a-f]{64}$")
 _UAMI_RE = re.compile(
     r"^/subscriptions/[^/]+/resourceGroups/[^/]+"
     r"/providers/Microsoft\.ManagedIdentity/userAssignedIdentities/[^/]+$"
@@ -58,9 +59,12 @@ def container_service_config(
     if not _NAME_RE.match(name) or not 2 <= len(name) <= 32:
         raise ValueError(f"Container App 名は英小文字・数字・ハイフンで 2〜32 文字: {name!r}")
     image_ref = image.rsplit("/", 1)[-1]
-    if "@" not in image_ref and (":" not in image_ref or not image_ref.rsplit(":", 1)[-1]):
+    if "@" in image_ref:
+        if not _DIGEST_RE.match(image_ref):
+            raise ValueError(f"ダイジェストは <repo>@sha256:<64 桁> の形にする: {image!r}")
+    elif ":" not in image_ref or not image_ref.rsplit(":", 1)[-1]:
         raise ValueError(f"イメージにタグを付ける（ダイジェスト固定が望ましい）: {image!r}")
-    if image.rsplit(":", 1)[-1] == "latest":
+    elif image_ref.rsplit(":", 1)[-1] == "latest":
         raise ValueError("latest タグはリビジョンを再現できないので使わない")
     if not 1 <= target_port <= 65535:
         raise ValueError(f"ポートが範囲外: {target_port}")

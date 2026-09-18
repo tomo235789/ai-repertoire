@@ -12,7 +12,10 @@ import re
 _SECRET_RE = re.compile(r"^[a-zA-Z0-9_-]{1,255}$")
 _ENV_RE = re.compile(r"^[A-Z][A-Z0-9_]*$")
 _PROJECT_RE = re.compile(r"^[a-z][a-z0-9-]{4,28}[a-z0-9]$")
-_SERVICE_ACCOUNT_RE = re.compile(r"^[a-z0-9-]+@[a-z0-9-]+\.iam\.gserviceaccount\.com$")
+# ID は 6〜30 文字、プロジェクト ID は 6〜30 文字
+_SERVICE_ACCOUNT_RE = re.compile(
+    r"^[a-z]([a-z0-9-]{4,28})[a-z0-9]@[a-z][a-z0-9-]{4,28}[a-z0-9]\.iam\.gserviceaccount\.com$"
+)
 
 SECRET_ACCESSOR_ROLE = "roles/secretmanager.secretAccessor"
 

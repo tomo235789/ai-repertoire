@@ -97,6 +97,15 @@ def test_invalid_inputs():
         read_only_role("R", ["storage"], [SCOPE])
 
 
+def test_secret_revealing_data_actions_rejected():
+    """notActions はデータプレーンに効かないので、入力の時点で弾く"""
+    with pytest.raises(ValueError, match="秘密そのもの"):
+        read_only_role(
+            "KV Reader", ["Microsoft.KeyVault"], [SCOPE],
+            data_read_actions=["Microsoft.KeyVault/vaults/secrets/read"],
+        )
+
+
 def test_pure_and_serializable():
     """引数を変更せず、返り値は JSON にできる"""
     providers = ["Microsoft.Storage"]

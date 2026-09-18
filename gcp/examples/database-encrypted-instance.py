@@ -57,7 +57,7 @@ def encrypted_instance_config(
 
     Raises:
         ValueError: 名前や版の形式違い、接続名が 98 文字超、
-            IAM 認証に対応しないエンジン、
+            IAM 認証に対応しないエンジン、許可ネットワークが IPv4 でない、
             ディスクが 10 GB 未満、未知の可用性、許可ネットワークの CIDR が不正か
             プレフィックス長 0、限定公開 IP も許可ネットワークも無い、
             削除保護を切ろうとした場合
@@ -92,6 +92,8 @@ def encrypted_instance_config(
             network = ipaddress.ip_network(cidr, strict=True)
         except ValueError as exc:
             raise ValueError(f"許可ネットワークの CIDR が不正: {cidr!r}") from exc
+        if network.version != 4:
+            raise ValueError(f"許可ネットワークは IPv4 で指定する: {cidr!r}")
         if network.prefixlen == 0:
             raise ValueError(
                 f"公開 IP を全世界に開けない: {cidr}。接続元の範囲を絞る"

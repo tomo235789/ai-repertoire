@@ -104,6 +104,31 @@ def test_empty_tag_rejected():
         container_service_config("example-api", "example.azurecr.io/api:", ENV_ID)
 
 
+def test_digest_format_checked():
+    """@ の後ろが sha256 の 64 桁でなければ弾く"""
+    for bad in ("example.azurecr.io/api@", "example.azurecr.io/api@sha256:not-a-digest"):
+        with pytest.raises(ValueError, match="ダイジェスト"):
+            container_service_config("example-api", bad, ENV_ID)
+
+
+def test_registry_identity_added_to_app():
+    """レジストリをユーザー割り当て ID で引くなら、その ID をアプリにも付ける"""
+    uami = (
+        "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg"
+        "/providers/Microsoft.ManagedIdentity/userAssignedIdentities/example-mi"
+    )
+    cfg = container_service_config(
+        "example-api", IMAGE, ENV_ID, registry_server="example.azurecr.io",
+        registry_identity=uami,
+    )
+    assert cfg["identity"] == {
+        "type": "SystemAssigned, UserAssigned",
+        "userAssignedIdentities": {uami: {}},
+    }
+    with pytest.raises(ValueError, match="registry_identity"):
+        container_service_config("example-api", IMAGE, ENV_ID, registry_identity="example-mi")
+
+
 def test_pure_and_serializable():
     """引数を変更せず、返り値は JSON にできる"""
     env = {"A": "1"}

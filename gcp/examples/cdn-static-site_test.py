@@ -108,6 +108,13 @@ def test_invalid_inputs():
         _cfg(cache_mode="ALWAYS")
 
 
+def test_reserved_bucket_names_rejected():
+    """IP アドレス形式と goog 接頭辞のバケット名は Cloud Storage が拒否する"""
+    for bad in ("192.168.5.4", "goog-site", "my-google-site"):
+        with pytest.raises(ValueError, match="バケット名"):
+            static_site_config("example-site", bad, ["www.example.com"])
+
+
 def test_pure_and_serializable():
     """同じ入力に同じ出力を返し、JSON にできる"""
     a = _cfg()

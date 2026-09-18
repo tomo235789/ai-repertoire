@@ -39,7 +39,7 @@ for a in cfg["role_assignments"]:
 - `minimumTlsVersion` は `"TLS1_2"`、`supportsHttpsTrafficOnly` は `True`
 - `requireInfrastructureEncryption` は常に `True`
 - `key_vault_key_uri` を渡すと `keySource` が `"Microsoft.Keyvault"` になり、鍵の URI が `keyvaulturi` / `keyname` / `keyversion` に分かれて入る。省略すると Microsoft 管理鍵
-- 顧客管理鍵には `encryption_identity_id`（ユーザー割り当て ID の ARM リソース ID）が必須。アカウントの `identity` が `UserAssigned` になり、`encryption.identity` にも同じ ID が入る
+- 顧客管理鍵には `encryption_identity_id`（ユーザー割り当て ID の ARM リソース ID）が必須。アカウントの `identity` が `UserAssigned` になり、`encryption.identity` にも同じ ID が入る。その ID に Key Vault の Crypto Service Encryption User を先に与えておく
 - `allowed_ip_rules` が空なら `publicNetworkAccess` は `"Disabled"`。1 件でもあると `"Enabled"` になるが、既定動作は `Deny` のまま
 - `reader_principal_ids` には Storage Blob Data Reader をコンテナのスコープで割り当てる。割り当て名はスコープとプリンシパルから `uuid5` で決まる
 - ロール定義 ID はサブスクリプションスコープで作る。割り当て先だけがコンテナのスコープ

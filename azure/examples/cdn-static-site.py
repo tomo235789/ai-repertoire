@@ -15,6 +15,12 @@ DEFAULT_CACHE_SECONDS = 86400
 # HTML は短く持つ。差し替えが反映されないと事故になる
 HTML_CACHE_SECONDS = 60
 
+_PROFILE_PATH = (
+    r"/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\.Cdn/profiles/[^/]+"
+)
+_ORIGIN_GROUP_RE = re.compile(rf"^{_PROFILE_PATH}/originGroups/[^/]+$")
+_CUSTOM_DOMAIN_RE = re.compile(rf"^{_PROFILE_PATH}/customDomains/[^/]+$")
+
 SECURITY_HEADERS: dict[str, str] = {
     "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
     "X-Content-Type-Options": "nosniff",
@@ -53,11 +59,11 @@ def static_site_config(
     """
     if not _HOST_RE.match(origin_host):
         raise ValueError(f"オリジンのホスト名の形式が不正: {origin_host!r}")
-    if custom_domain_id is not None and not custom_domain_id.startswith("/subscriptions/"):
+    if custom_domain_id is not None and not _CUSTOM_DOMAIN_RE.match(custom_domain_id):
         raise ValueError(
             f"独自ドメインは AFDDomain の ARM リソース ID で指定する: {custom_domain_id!r}"
         )
-    if not origin_group_id.startswith("/subscriptions/"):
+    if not _ORIGIN_GROUP_RE.match(origin_group_id):
         raise ValueError(
             f"オリジングループは ARM リソース ID で指定する: {origin_group_id!r}"
         )

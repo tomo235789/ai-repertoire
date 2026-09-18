@@ -40,7 +40,7 @@ def ordered_subscription_with_dlq(
     subscription: str,
     dead_letter_topic: str,
     *,
-    project_number: str,
+    subscription_project_number: str,
     ack_deadline_seconds: int = 60,
     max_delivery_attempts: int = 5,
     message_retention_days: int = 7,
@@ -53,7 +53,9 @@ def ordered_subscription_with_dlq(
         topic: 購読元トピックの完全名
         subscription: 購読の完全名
         dead_letter_topic: 配信不能トピックの完全名
-        project_number: Pub/Sub サービスエージェントを組み立てるプロジェクト番号
+        subscription_project_number: subscription を持つプロジェクトの番号。
+            Pub/Sub は購読側プロジェクトのサービスエージェントで転送するので、
+            トピックが別プロジェクトにあってもここは購読側の番号にする
         ack_deadline_seconds: 確認応答の期限。10〜600
         max_delivery_attempts: 退避までの試行回数。5〜100
         message_retention_days: 未確認メッセージを保持する日数。1〜7
@@ -62,7 +64,8 @@ def ordered_subscription_with_dlq(
 
     Returns:
         topic_config、subscription_config、
-        dead_letter_bindings（購読を作る前に与える IAM）を持つ dict
+        bindings_before_create（購読を作る前に与える IAM）、
+        bindings_after_create（購読を作った後に与える IAM）を持つ dict
 
     Raises:
         ValueError: 名前の形式違い、配信不能トピックが購読元と同じ、
@@ -82,8 +85,10 @@ def ordered_subscription_with_dlq(
         raise ValueError(
             f"試行回数は {MIN_DELIVERY_ATTEMPTS}〜{MAX_DELIVERY_ATTEMPTS}: {max_delivery_attempts}"
         )
-    if not project_number.isdigit():
-        raise ValueError(f"プロジェクト番号は数字で指定する: {project_number!r}")
+    if not subscription_project_number.isdigit():
+        raise ValueError(
+            f"プロジェクト番号は数字で指定する: {subscription_project_number!r}"
+        )
     if not 1 <= message_retention_days <= 7:
         raise ValueError(f"保持日数は 1〜7: {message_retention_days}")
 
@@ -111,21 +116,26 @@ def ordered_subscription_with_dlq(
     # 配信不能転送は Pub/Sub のサービスエージェントが行う。
     # 購読を作る前にこの 2 つを与えないと、退避されないまま再試行が続く
     service_agent = (
-        f"serviceAccount:service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+        "serviceAccount:service-"
+        f"{subscription_project_number}@gcp-sa-pubsub.iam.gserviceaccount.com"
     )
     return {
         "topic_config": {"name": topic, "message_retention_duration": {"seconds": 86400}},
         "subscription_config": subscription_config,
-        "dead_letter_bindings": [
+        # 退避先トピックへの発行権限は購読を作る前に与える
+        "bindings_before_create": [
             {
                 "resource": dead_letter_topic,
                 "role": "roles/pubsub.publisher",
                 "members": [service_agent],
-            },
+            }
+        ],
+        # 購読そのものへの権限は、購読ができてからでないと与えられない
+        "bindings_after_create": [
             {
                 "resource": subscription,
                 "role": "roles/pubsub.subscriber",
                 "members": [service_agent],
-            },
+            }
         ],
     }

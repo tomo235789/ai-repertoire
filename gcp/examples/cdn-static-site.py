@@ -12,6 +12,8 @@ _NAME_RE = re.compile(r"^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$")
 _DOMAIN_RE = re.compile(r"^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$")
 # バケット名は英小文字・数字・ハイフン・アンダースコア・ドットで 3〜63 文字
 _BUCKET_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{1,61}[a-z0-9]$")
+# IP アドレスの形をした名前と goog 接頭辞は Cloud Storage が拒否する
+_IPV4_LIKE_RE = re.compile(r"^\d{1,3}(\.\d{1,3}){3}$")
 
 CACHE_MODES = ("CACHE_ALL_STATIC", "USE_ORIGIN_HEADERS", "FORCE_CACHE_ALL")
 # TLS の最低バージョンを決めるプロファイル
@@ -54,7 +56,13 @@ def static_site_config(
     """
     if not _NAME_RE.match(name):
         raise ValueError(f"名前の形式が不正: {name!r}")
-    if not _BUCKET_RE.match(bucket_name) or ".." in bucket_name:
+    if (
+        not _BUCKET_RE.match(bucket_name)
+        or ".." in bucket_name
+        or bucket_name.startswith("goog")
+        or "google" in bucket_name
+        or _IPV4_LIKE_RE.match(bucket_name)
+    ):
         raise ValueError(f"バケット名の形式が不正: {bucket_name!r}")
     unique_domains = sorted(set(domains))
     if not unique_domains:

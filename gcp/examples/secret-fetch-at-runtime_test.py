@@ -96,6 +96,12 @@ def test_service_account_must_be_gserviceaccount():
         runtime_secret_config("my-project", {"A": "a"}, "user@example.com")
 
 
+def test_service_account_id_length_checked():
+    """ID とプロジェクト ID はどちらも 6〜30 文字"""
+    with pytest.raises(ValueError, match="gserviceaccount"):
+        runtime_secret_config("my-project", {"A": "a"}, "a@b.iam.gserviceaccount.com")
+
+
 def test_pure_and_serializable():
     """引数を変更せず、返り値は JSON にできる"""
     secrets = {"DB_PASSWORD": "db-password"}
