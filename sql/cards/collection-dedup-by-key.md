@@ -43,7 +43,7 @@ ORDER BY id;
 
 - duckdb / PostgreSQL: `SELECT DISTINCT ON (id) id, name FROM t ORDER BY id, ts`。`ORDER BY` の先頭が `DISTINCT ON` の列でなければならない。sqlite / MySQL では構文エラー
 - duckdb / BigQuery / Snowflake: `SELECT id, name FROM t QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY ts) = 1`
-- MySQL 8.0+ は同じ `ROW_NUMBER` が書ける。5.7 には窓関数が無いので `WHERE NOT EXISTS (SELECT 1 FROM t AS u WHERE u.id <=> t.id AND ((NOT u.ts <=> t.ts AND (u.ts IS NULL OR (t.ts IS NOT NULL AND u.ts < t.ts))) OR (u.ts <=> t.ts AND u.pk < t.pk)))` と書く（`pk` は一意な列）。`u.id = t.id` だと `NULL` キーの行が全部残り、`u.ts < t.ts` だけだと `ts` が同じ行や `ts` が `NULL` の行が複数残るので、`ROW_NUMBER() = 1`（`ORDER BY ts NULLS FIRST, pk`。既定の NULL 順序は sqlite が FIRST、duckdb / PostgreSQL が LAST なので明示する）と同じ結果にするには、キーと並べ替え列の両方を NULL 安全に比較（MySQL は `<=>`）し、`NULL` を最小として扱い、一意なタイブレークを入れる。同じ形を sqlite は `IS`、duckdb は `IS NOT DISTINCT FROM` で書け、`ROW_NUMBER` 版と一致することを確認した
+- MySQL 8.0+ は同じ `ROW_NUMBER` が書ける。5.7 には窓関数が無いので `WHERE NOT EXISTS (SELECT 1 FROM t AS u WHERE u.id <=> t.id AND ((NOT u.ts <=> t.ts AND (u.ts IS NULL OR (t.ts IS NOT NULL AND u.ts < t.ts))) OR (u.ts <=> t.ts AND u.pk < t.pk)))` と書く（`pk` は一意な列）。`u.id = t.id` だと `NULL` キーの行が全部残り、`u.ts < t.ts` だけだと `ts` が同じ行や `ts` が `NULL` の行が複数残るので、`ROW_NUMBER() = 1` と同じ結果にするには（並べ替えは `NULL` を最小として扱う。sqlite と MySQL の昇順は既定で `NULL` が先、duckdb / PostgreSQL は `NULLS FIRST` を明示する。MySQL は `NULLS FIRST` 構文を持たないので書かない）、キーと並べ替え列の両方を NULL 安全に比較（MySQL は `<=>`）し、`NULL` を最小として扱い、一意なタイブレークを入れる。同じ形を sqlite は `IS`、duckdb は `IS NOT DISTINCT FROM` で書け、`ROW_NUMBER` 版と一致することを確認した
 - 「最後の行」は `ORDER BY ts DESC`。「各キーの上位 n 件」は `WHERE rn <= n`
 - キーの重複を消したいだけ（他の列が要らない）なら `SELECT DISTINCT id FROM t`
 
