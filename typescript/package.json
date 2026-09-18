@@ -8,9 +8,13 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@date-fns/tz": "^1.5.0",
+    "@types/node": "^22.20.3",
     "date-fns": "^4.4.0",
     "es-toolkit": "^1.52.0",
+    "safe-stable-stringify": "^2.5.0",
     "typescript": "^5.9.0",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.1",
+    "zod": "^4.6.5"
   }
 }
