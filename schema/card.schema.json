@@ -10,12 +10,12 @@
     "id": {
       "description": "言語横断で同一のカード ID。<領域>-<動作>[-<修飾>]",
       "type": "string",
-      "pattern": "^(collection|object|string|number|date|function|async|result|pattern|iter|map|set|validation|io|json|url|http|error|log)-[a-z0-9]+(-[a-z0-9]+)*$"
+      "pattern": "^(collection|object|string|number|date|function|async|result|pattern|iter|map|set|validation|io|json|url|http|error|log|storage|iam|network|compute|secret|queue|database|observability|cdn|dns)-[a-z0-9]+(-[a-z0-9]+)*$"
     },
     "lang": {
       "description": "ディレクトリ名と一致する言語名",
       "type": "string",
-      "enum": ["typescript", "python", "go", "csharp", "cpp", "react", "ruby", "rust", "sql"]
+      "enum": ["typescript", "python", "go", "csharp", "cpp", "react", "ruby", "rust", "sql", "terraform", "aws", "gcp", "azure"]
     },
     "title": {
       "description": "用途を表す日本語タイトル。同じ id の言語間で一致させる",
@@ -30,7 +30,7 @@
       "items": { "type": "string", "minLength": 1 }
     },
     "lib": {
-      "description": "ライブラリ名。標準ライブラリなら stdlib。SQL は方言名（postgresql / mysql / sqlite / bigquery など）",
+      "description": "ライブラリ名。標準ライブラリなら stdlib。SQL は方言名、クラウドはプロバイダ / サービス名（hashicorp/aws、aws.s3 など）",
       "type": "string",
       "minLength": 1
     },
