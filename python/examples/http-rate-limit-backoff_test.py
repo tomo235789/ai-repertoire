@@ -139,7 +139,11 @@ def test_stop_after_delay_uses_elapsed_time() -> None:
     state.set_result(httpx.Response(429))
     assert state.seconds_since_start is not None
     assert stop(state) is False
-    state.outcome_timestamp = state.start_time + 10
+    # 上限ちょうどの時刻は start_time + 10 の丸めで 10 秒をわずかに下回ることがあるので、
+    # 境界そのものではなく前後の値で判定する
+    state.outcome_timestamp = state.start_time + 9.5
+    assert stop(state) is False
+    state.outcome_timestamp = state.start_time + 10.5
     assert stop(state) is True
 
 
