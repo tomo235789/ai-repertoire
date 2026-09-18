@@ -53,6 +53,9 @@ go/                          SKILL.md, cards/, examples/（go test。samber/lo +
 csharp/                      SKILL.md, cards/, examples/（xUnit。LINQ + MoreLINQ）
 react/                       SKILL.md, cards/（パターン粒度、ID は pattern-*）, examples/（vitest + Testing Library）
 cpp/                         SKILL.md, cards/, examples/（g++-14 -std=c++23、std::ranges）
+ruby/                        SKILL.md, cards/, examples/（minitest）
+rust/                        SKILL.md, cards/, tests/（cargo test、itertools + chrono）
+sql/                         SKILL.md, cards/（lib は方言）, examples/（pytest で sqlite と duckdb に実行）
 .github/workflows/           validate.yml（PR）, publish.yml（main → Pages）
 ```
 
