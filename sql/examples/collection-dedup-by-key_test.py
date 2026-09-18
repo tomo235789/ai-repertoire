@@ -107,6 +107,8 @@ def test_duckdb_qualify_and_distinct_on():
 
 
 TIES_AND_NULLS = "WITH t(id, name, ts) AS (VALUES (1, 'a', 3), (2, 'b', 1), (1, 'c', 2), (NULL, 'd', 5), (NULL, 'e', 0), (3, 'x', 7), (3, 'y', 7))"
+# 並べ替え列 ts が NULL の行が同じ id に 2 つある場合（NULL 同士は < も = も真にならない）
+NULL_TS = "WITH t(id, name, ts) AS (VALUES (4, 'p', NULL), (4, 'q', NULL), (4, 'r', 9))"
 
 
 @pytest.mark.parametrize("engine", ENGINES)
@@ -126,7 +128,8 @@ def test_not_exists_alternative_needs_null_safe_equality_and_tie_breaker(engine)
     fixed = (
         TIES_AND_NULLS
         + f" SELECT id, name FROM t WHERE NOT EXISTS (SELECT 1 FROM t AS u WHERE u.id {null_safe} t.id"
-        " AND (u.ts < t.ts OR (u.ts = t.ts AND u.name < t.name))) ORDER BY id NULLS FIRST, name"
+        f" AND ((NOT u.ts {null_safe} t.ts AND (u.ts IS NULL OR (t.ts IS NOT NULL AND u.ts < t.ts)))"
+        f" OR (u.ts {null_safe} t.ts AND u.name < t.name))) ORDER BY id NULLS FIRST, name"
     )
     expected = [(None, "e"), (1, "c"), (2, "b"), (3, "x")]
     assert run(engine, reference) == expected
@@ -139,6 +142,34 @@ def test_not_exists_alternative_needs_null_safe_equality_and_tie_breaker(engine)
         (3, "y"),
     ]
     assert run(engine, fixed) == expected
+
+
+@pytest.mark.parametrize("engine", ENGINES)
+def test_not_exists_alternative_needs_null_safe_order_column(engine):
+    """Alternatives: 並べ替え列が NULL の行が複数あると、< と = だけの比較では重複が残る"""
+    null_safe = "IS" if engine == "sqlite" else "IS NOT DISTINCT FROM"
+    reference = (
+        NULL_TS
+        + " SELECT id, name FROM (SELECT id, name, ROW_NUMBER() OVER (PARTITION BY id ORDER BY ts NULLS FIRST, name) AS rn FROM t)"
+        " WHERE rn = 1 ORDER BY name"
+    )
+    partially_fixed = (
+        NULL_TS
+        + f" SELECT id, name FROM t WHERE NOT EXISTS (SELECT 1 FROM t AS u WHERE u.id {null_safe} t.id"
+        " AND (u.ts < t.ts OR (u.ts = t.ts AND u.name < t.name))) ORDER BY name"
+    )
+    fixed = (
+        NULL_TS
+        + f" SELECT id, name FROM t WHERE NOT EXISTS (SELECT 1 FROM t AS u WHERE u.id {null_safe} t.id"
+        f" AND ((NOT u.ts {null_safe} t.ts AND (u.ts IS NULL OR (t.ts IS NOT NULL AND u.ts < t.ts)))"
+        f" OR (u.ts {null_safe} t.ts AND u.name < t.name))) ORDER BY name"
+    )
+    # NULLS FIRST を明示すると、NULL の 2 行のうち name の小さい 'p' が残る
+    # （既定の NULL 順序は sqlite が FIRST、duckdb が LAST で食い違うので明示する）
+    assert run(engine, reference) == [(4, "p")]
+    # NULL 同士は < も = も真にならないので、NULL の行は互いを打ち消せず ts=9 の行も残る
+    assert run(engine, partially_fixed) == [(4, "p"), (4, "q"), (4, "r")]
+    assert run(engine, fixed) == [(4, "p")]
 
 
 def test_group_by_with_bare_column_is_sqlite_only():

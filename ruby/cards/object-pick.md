@@ -5,7 +5,7 @@ title: オブジェクトから指定したキーだけを取り出す
 tags: [抽出, キー選択, 部分ハッシュ, pick, select-keys, subset, slice]
 lib: stdlib
 fn: Hash#slice
-since: "2.7"
+since: "2.5"
 verified: 2026-09-17
 preserves_order: true
 status: public

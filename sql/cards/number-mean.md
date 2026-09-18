@@ -23,7 +23,7 @@ AVG(col)
 ```sql
 WITH t(v) AS (VALUES (1), (2), (NULL), (4))
 SELECT AVG(v), SUM(v) * 1.0 / COUNT(*), COUNT(v), COUNT(*) FROM t;
--- => (2.3333333333333335, 1.75, 3, 4)   -- NULL は分母にも入らない
+-- => (2.3333333333333335, 1.75, 3, 4)   -- AVG の分母は COUNT(v)=3、COUNT(*)=4 は NULL 行も数える
 ```
 
 ## Contract

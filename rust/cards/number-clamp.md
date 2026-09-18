@@ -33,7 +33,7 @@ fn clamp(self, min: Self, max: Self) -> Self where Self: Sized
 - `Ord` を実装する型すべてで使える（整数、`char`、`&str`、タプルなど）。値を消費し（`self`）、返り値は 3 引数のいずれか
 - **`min > max` なら panic**（`5.clamp(10, 1)` は `min > max. min = 10, max = 1`）
 - `f64` / `f32` は `Ord` ではなく固有メソッド `f64::clamp(self, min: f64, max: f64) -> f64` を使う。`x` が NaN なら NaN を返し、`min` か `max` が NaN、または `min > max` なら panic
-- `f64::clamp` は `-0.0` を `0.0` に置き換えない（`(-0.0).clamp(0.0, 1.0)` は `-0.0`。`-0.0 < 0.0` が偽なので）。`f64::INFINITY.clamp(0.0, 1.0)` は `1.0`
+- `f64::clamp` は範囲内なら `self` をそのまま返すと規定されており、`-0.0 < 0.0` は偽なので `(-0.0).clamp(0.0, 1.0)` は `-0.0` になる（零の符号に依存する処理は書かない）。`f64::INFINITY.clamp(0.0, 1.0)` は `1.0`
 - 純粋関数。引数を変更しない
 
 ## Alternatives

@@ -44,7 +44,7 @@ each_cons(n) { |window| ... } -> self / each_cons(n) -> Enumerator
 - 重ならない分割は `each_slice(n)`（collection-chunk）。`each_cons` は重なる窓
 - `step` 相当が欲しいなら `each_cons(n).each_slice(step).map(&:first)`（`step` ごとに 1 窓を残す）
 - 末尾の短い窓も欲しいなら `(0...arr.size).map { |i| arr[i, n] }`
-- 添字で切るなら `(0..arr.size - n).map { |i| arr[i, n] }`（`n` 未満なら空 Range になり `[]`）
+- 添字で切るなら `(0..arr.size - n).map { |i| arr[i, n] }`（`arr.size < n` なら終端が始端より小さい Range になり 1 度も繰り返さないので `[]`）
 
 ## Pitfalls
 

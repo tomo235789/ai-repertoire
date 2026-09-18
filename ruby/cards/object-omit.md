@@ -36,7 +36,7 @@ user.except(:password, :name)
 - 存在しないキーを指定しても無視される
 - すべてのキーを除くと `{}`。引数無しなら元と同じ内容の別オブジェクト
 - キーの一致は `Hash#[]` と同じ `eql?` / `hash` による。`"a"` と `:a` は別のキー
-- 元のハッシュの `default` / `default_proc` は返り値に引き継がれない（`compare_by_identity` は引き継がれる）
+- 元のハッシュの `default` / `default_proc` は返り値に引き継がれない（`Hash.new(0).except(:a).default` は `nil`。`compare_by_identity` は引き継がれる）
 - 例外は投げない
 
 ## Alternatives

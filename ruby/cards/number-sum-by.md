@@ -33,7 +33,7 @@ items.sum { |item| item[:qty] }
 - 入力を変更しない
 - ブロックは純粋関数であること。各要素につきちょうど 1 回、先頭から順に呼ばれる
 - 空なら `init` を返す。既定は `0`（`Integer`）
-- 型変換はしない。結果は `init` に各要素を `+` で足したものと同じで、要素に `String` や `nil` があると `TypeError`（`nil can't be coerced into Integer`）。`Integer` と `Float` が混在すると `Float`。ただし「要素ごとに `+` を呼ぶ」ことは実装保証ではなく、`Integer` / `Float` の列や整数 `Range`（ブロック無し）は最適化され、`Integer#+` や `each` を再定義しても呼ばれない
+- 型変換はしない。結果は `init` に各要素を `+` で足したものと同じで、`init`（既定は `0`）と要素の `+` が互換でないと `TypeError`（`[1, nil].sum` は `nil can't be coerced into Integer`）。`String` の列でも `init` を `""` にすれば連結できる（`["a", "b"].sum("")` は `"ab"`）。`Integer` と `Float` が混在すると `Float`。ただし「要素ごとに `+` を呼ぶ」ことは実装保証ではなく、`Integer` / `Float` の列や整数 `Range`（ブロック無し）は最適化され、`Integer#+` や `each` を再定義しても呼ばれない
 - `Float` の合計は Kahan-Babuska 補正付きで、`([0.1] * 10).sum` は `1.0`、`[0.1, 0.2, 0.3].sum` は `0.6`、`[1e100, 1.0, -1e100].sum` は `1.0`。`inject(:+)` は素朴な加算で `0.9999999999999999` / `0.6000000000000001` / `0.0`。ただし `[0.1, 0.2].sum` は `0.30000000000000004`（正しく丸めた結果）
 - 要素に `Float::NAN` があれば `NaN`。`Float::INFINITY` と `-Float::INFINITY` を両方含むと `NaN`
 - `Rational` / `BigDecimal` の合計はそのまま動く（`[1, Rational(1, 2)].sum` は `(3/2)`）。`Float` と混ぜると `Float` / `BigDecimal` に寄る

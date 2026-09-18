@@ -43,7 +43,7 @@ let uniq: Vec<&(i32, &str)> = users.iter().unique_by(|u| u.0).collect();
 
 - 要素そのものがキー（`Eq + Hash`）なら `unique()`
 - ソート済みで **隣接する** 重複だけまとめればよいなら `dedup_by(|a, b| ...)` / `dedup_by_key(...)`、その場で縮めるなら stdlib の `Vec::dedup_by_key`
-- 順序が不要なら `HashSet` に `collect`、キー順でよければ `BTreeMap<K, T>` に `entry().or_insert()` で先勝ち
+- キー順でよければ `BTreeMap<K, T>` に `entry().or_insert()` で先勝ち（`HashSet` への `collect` は要素全体の `Eq` / `Hash` で判定するので、`(1, "a")` と `(1, "b")` が両方残りキー単位の重複除去にはならない）
 
 ## Pitfalls
 
