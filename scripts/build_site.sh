@@ -18,11 +18,14 @@ cp "$ROOT/README.md" "$ROOT/llms.txt" "$ROOT/LICENSE" "$ROOT/LICENSE-CONTENT" "$
 [ -d "$ROOT/docs" ] && cp -r "$ROOT/docs" "$SITE/docs"
 cp -r "$ROOT/reference" "$SITE/reference"
 
-for lang in typescript python go csharp cpp react ruby rust sql; do
-  if [ -d "$ROOT/$lang/cards" ]; then
+# 言語ディレクトリは固定列挙せず、cards を持つディレクトリをすべて配信する
+# （terraform / aws / gcp / azure のようなクラウド側の追加を取りこぼさないため）
+for cards in "$ROOT"/*/cards; do
+  lang="$(basename "$(dirname "$cards")")"
+  if [ -d "$cards" ]; then
     mkdir -p "$SITE/$lang"
     cp -r "$ROOT/$lang/cards" "$SITE/$lang/cards"
-    [ -f "$ROOT/$lang/SKILL.md" ] && cp "$ROOT/$lang/SKILL.md" "$SITE/$lang/"
+    if [ -f "$ROOT/$lang/SKILL.md" ]; then cp "$ROOT/$lang/SKILL.md" "$SITE/$lang/"; fi
   fi
 done
 
