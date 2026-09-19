@@ -116,6 +116,23 @@ def test_data_actions_cannot_use_management_group():
         least_privilege_role("R", "説明", [READ_BLOB], [mg], data_actions=[data])
 
 
+def test_role_writing_actions_rejected():
+    """ロールや割り当てを書き換えられる操作は最小権限のロールに入れない"""
+    for action in (
+        "Microsoft.Authorization/roleAssignments/write",
+        "Microsoft.Authorization/roleDefinitions/write",
+        "Microsoft.Authorization/elevateAccess/action",
+        # ワイルドカードで包んでも同じ
+        "Microsoft.Authorization/roleAssignments/*",
+    ):
+        with pytest.raises(ValueError, match="ロールを書き換えられる"):
+            least_privilege_role("R", "説明", [action], [SCOPE])
+    # 読み取りは通す
+    assert least_privilege_role(
+        "R", "説明", ["Microsoft.Authorization/roleAssignments/read"], [SCOPE]
+    )
+
+
 def test_pure_and_serializable():
     """引数のリストを変更せず、返り値は JSON にできる"""
     actions = [READ_BLOB]

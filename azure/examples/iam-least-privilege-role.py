@@ -17,13 +17,38 @@ _MG_SCOPE_RE = re.compile(r"^/providers/Microsoft\.Management/managementGroups/[
 _ROLE_NAMESPACE = uuid.UUID("6ba7b811-9dad-11d1-80b4-00c04fd430c8")
 
 
+# ロールや割り当てを書き換えられる操作。これを含むロールは自分で権限を増やせる
+PRIVILEGE_ESCALATING_ACTIONS = (
+    "Microsoft.Authorization/roleAssignments/write",
+    "Microsoft.Authorization/roleAssignments/delete",
+    "Microsoft.Authorization/roleDefinitions/write",
+    "Microsoft.Authorization/roleDefinitions/delete",
+    "Microsoft.Authorization/elevateAccess/action",
+)
+
+
+def _is_escalating(op: str) -> bool:
+    """権限昇格につながる操作か、それを含むワイルドカードかを見る"""
+    if op in PRIVILEGE_ESCALATING_ACTIONS:
+        return True
+    if not op.endswith("*"):
+        return False
+    prefix = op[:-1]
+    return any(action.startswith(prefix) for action in PRIVILEGE_ESCALATING_ACTIONS)
+
+
 def _check_operations(label: str, operations: tuple[str, ...]) -> None:
     for op in operations:
         if not op:
             raise ValueError(f"{label} に空文字は入れられない")
-        if op == "*" or op.endswith("/*") and op.count("/") == 1:
+        if op == "*" or (op.endswith("/*") and op.count("/") == 1):
             # "*" やプロバイダ丸ごとの "Microsoft.Storage/*" は最小権限にならない
             raise ValueError(f"{label} に広すぎるワイルドカードは使えない: {op!r}")
+        if _is_escalating(op):
+            raise ValueError(
+                f"{label} にロールを書き換えられる操作は入れられない: {op!r}。"
+                "このロールを持つ相手が自分で権限を増やせる"
+            )
 
 
 def least_privilege_role(

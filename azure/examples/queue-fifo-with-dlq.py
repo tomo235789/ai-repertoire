@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import re
 
-_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._\-/]{0,258}[A-Za-z0-9]$")
+_NAME_RE = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9._\-/]{0,258}[A-Za-z0-9])?$")
 
 # 期間は ISO 8601 の duration で渡す。ロックは 5 分が上限
 MAX_LOCK_SECONDS = 300

@@ -82,6 +82,11 @@ def test_size_limited_to_supported_values():
     assert fifo_queue_with_dlq("orders", max_size_megabytes=5120)["maxSizeInMegabytes"] == 5120
 
 
+def test_single_character_queue_name():
+    """1 文字のキュー名も Service Bus では有効"""
+    assert fifo_queue_with_dlq("a")["requiresSession"] is True
+
+
 def test_invalid_inputs():
     """名前・配信回数・サイズの不正は ValueError"""
     with pytest.raises(ValueError):

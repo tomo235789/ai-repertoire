@@ -79,6 +79,16 @@ def test_purge_protection_cannot_be_disabled():
         _cfg(purge_protection=False)
 
 
+def test_expiry_must_exceed_notification_offset():
+    """期限 30 日前に通知するので、有効期間は 31 日以上にする"""
+    with pytest.raises(ValueError, match="有効期間"):
+        _cfg(rotation_period_days=7, expiry_days=30)
+    policy = _cfg(rotation_period_days=7, expiry_days=31)["rotation_policy"]
+    actions = {a["action"]["type"]: a["trigger"] for a in policy["lifetimeActions"]}
+    assert actions["Notify"] == {"timeBeforeExpiry": "P30D"}
+    assert policy["attributes"]["expiryTime"] == "P31D"
+
+
 def test_invalid_inputs():
     """名前・鍵種別・鍵長・保持日数の不正は ValueError"""
     with pytest.raises(ValueError):

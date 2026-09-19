@@ -32,8 +32,9 @@ client.keys.create_if_not_exist("example-rg", "example-kv", "data-key", cfg["key
 - SKU は HSM 鍵なら `premium`、ソフトウェア鍵なら `standard`
 - `keyOps` は `wrapKey` / `unwrapKey` / `encrypt` / `decrypt` の 4 つだけ。署名には使えない
 - 鍵は `exportable: False`。取り出せない
-- ローテーションは作成から `rotation_period_days` 経った時点で走る（`timeAfterCreate`）。期限からの逆算では最初の版が回らない。期限 30 日前に通知が入る
-- `ValueError`: 名前の形式違い、鍵の種類が RSA / RSA-HSM 以外、鍵長が 3072 / 4096 以外、論理削除の保持日数が 7〜90 の外、ローテーション間隔が 7 日未満、有効期間が 28 日未満か、ローテーション間隔 + 7 日より短い、`purge_protection=False`
+- ローテーションは作成から `rotation_period_days` 経った時点で走る（`timeAfterCreate`）。期限からの逆算では最初の版が回らない
+- 通知は期限 30 日前の固定。有効期間がそれ以下だと通知が成立しないので、31 日以上を求める
+- `ValueError`: 名前の形式違い、鍵の種類が RSA / RSA-HSM 以外、鍵長が 3072 / 4096 以外、論理削除の保持日数が 7〜90 の外、ローテーション間隔が 7 日未満、有効期間が 31 日未満か、ローテーション間隔 + 7 日より短い、`purge_protection=False`
 - 同じ入力に同じ出力を返し、返り値は `json.dumps` できる
 
 ## Alternatives

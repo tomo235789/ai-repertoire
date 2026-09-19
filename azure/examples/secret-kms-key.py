@@ -16,7 +16,9 @@ WRAP_KEY_OPS = ("wrapKey", "unwrapKey", "encrypt", "decrypt")
 _ALLOWED_KEY_TYPES = {"RSA": (3072, 4096), "RSA-HSM": (3072, 4096)}
 # Key Vault が受け付けるローテーションポリシーの下限
 MIN_ROTATION_DAYS = 7
-MIN_EXPIRY_DAYS = 28
+# 期限 30 日前に通知するので、有効期間はそれより長くする
+NOTIFY_BEFORE_EXPIRY_DAYS = 30
+MIN_EXPIRY_DAYS = NOTIFY_BEFORE_EXPIRY_DAYS + 1
 # ローテーションから期限切れまでに要る最短の間隔
 MIN_ROTATION_TO_EXPIRY_GAP = 7
 
@@ -44,7 +46,7 @@ def customer_managed_key(
         key_type: "RSA" か "RSA-HSM"
         key_size: 3072 か 4096
         rotation_period_days: 自動ローテーションの間隔
-        expiry_days: 鍵の有効期間。ローテーション間隔より 7 日以上長くする
+        expiry_days: 鍵の有効期間。31 日以上かつローテーション間隔より 7 日以上長くする
         purge_protection: 消去保護。True にすると論理削除後の完全削除を禁じる
         soft_delete_retention_days: 論理削除の保持日数。7〜90
 
@@ -114,7 +116,7 @@ def customer_managed_key(
                 "action": {"type": "Rotate"},
             },
             {
-                "trigger": {"timeBeforeExpiry": "P30D"},
+                "trigger": {"timeBeforeExpiry": f"P{NOTIFY_BEFORE_EXPIRY_DAYS}D"},
                 "action": {"type": "Notify"},
             },
         ],
