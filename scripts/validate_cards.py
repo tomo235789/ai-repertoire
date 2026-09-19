@@ -41,21 +41,32 @@ USAGE_MAX_LINES = 10
 PYTHON_LANGS = frozenset({"python", "sql", "aws", "gcp", "azure"})
 
 
-def _public_functions(source: str) -> Dict[str, ast.FunctionDef]:
-    """モジュール直下の公開関数を名前で引けるようにする"""
+FunctionNode = "ast.FunctionDef | ast.AsyncFunctionDef"
+
+
+def _public_functions(source: str) -> Dict[str, "FunctionNode"]:
+    """モジュール直下の公開関数を名前で引けるようにする。async def も含む"""
     return {
         node.name: node
         for node in ast.parse(source).body
-        if isinstance(node, ast.FunctionDef) and not node.name.startswith("_")
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and not node.name.startswith("_")
     }
 
 
-def _parameter_names(node: ast.FunctionDef) -> List[str]:
+def _parameter_names(node: "FunctionNode") -> List[str]:
+    """引数名を宣言順に返す。*args と **kwargs も名前として数える"""
     args = node.args
-    return [a.arg for a in args.posonlyargs + args.args] + [a.arg for a in args.kwonlyargs]
+    names = [a.arg for a in args.posonlyargs + args.args]
+    if args.vararg is not None:
+        names.append(args.vararg.arg)
+    names += [a.arg for a in args.kwonlyargs]
+    if args.kwarg is not None:
+        names.append(args.kwarg.arg)
+    return names
 
 
-def _required_parameters(node: ast.FunctionDef) -> Tuple[List[str], List[str]]:
+def _required_parameters(node: "FunctionNode") -> Tuple[List[str], List[str]]:
     """既定値を持たない引数を (位置指定, キーワード専用) で返す。可変長引数は数えない"""
     args = node.args
     positional = args.posonlyargs + args.args
@@ -106,8 +117,10 @@ def validate_signature(card: Card, source: str) -> List[str]:
     section = _section(card, "Signature")
     errors = []
     for name, node in functions.items():
-        # `def` の有無はカードによって揺れるので、どちらでも拾う
-        match = re.search(rf"^(?:def\s+)?{re.escape(name)}\((.*?)\)\s*->", section, re.M | re.S)
+        # `def` の有無はカードによって揺れるので、どちらでも拾う。async も同じ
+        match = re.search(
+            rf"^(?:async\s+)?(?:def\s+)?{re.escape(name)}\((.*?)\)\s*->", section, re.M | re.S
+        )
         if match is None:
             errors.append(f"Signature: {name} の定義が無い")
             continue
@@ -142,13 +155,26 @@ def validate_usage_call(card: Card, source: str) -> List[str]:
         if target is None:
             continue
         given = {kw.arg for kw in node.keywords if kw.arg}
+        positional_count = len(node.args)
+        arguments = target.args
+        position_only = {a.arg for a in arguments.posonlyargs}
         required_positional, required_keyword = _required_parameters(target)
-        # 位置引数は前から順に埋まる。キーワード専用は名前でしか埋まらない
+        # 位置引数は前から順に埋まる。位置専用の引数は名前では埋められない
         missing = [
             name for index, name in enumerate(required_positional)
-            if index >= len(node.args) and name not in given
+            if index >= positional_count
+            and (name in position_only or name not in given)
         ]
+        # キーワード専用は名前でしか埋まらない
         missing += [name for name in required_keyword if name not in given]
+        # *args が無ければ、受け取れる位置引数の数には上限がある
+        if arguments.vararg is None:
+            limit = len(arguments.posonlyargs) + len(arguments.args)
+            if positional_count > limit:
+                errors.append(
+                    f"Usage: {node.func.id} に位置引数を渡しすぎている"
+                    f"（{positional_count} 個。受け取れるのは {limit} 個）"
+                )
         if missing:
             errors.append(f"Usage: {node.func.id} の呼び出しに {missing} が無い")
     return errors
