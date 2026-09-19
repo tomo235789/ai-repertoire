@@ -34,63 +34,25 @@ def test_update_body_omits_creation_only_keys():
     assert "geoRedundantBackup" not in cfg["backup_on_update"]
 
 
-def test_long_term_retention_off_by_default():
-    """長期保持は既定で無効。期間は PT0S で表す"""
-    ltr = backup_retention_config()["long_term_retention"]
-    assert ltr == {
-        "weeklyRetention": "PT0S",
-        "monthlyRetention": "PT0S",
-        "yearlyRetention": "PT0S",
-        "weekOfYear": 0,
-    }
-
-
-def test_long_term_retention_durations():
-    """週次・月次・年次は ISO 8601 の duration になる"""
-    ltr = backup_retention_config(
-        weekly_retention_weeks=12,
-        monthly_retention_months=12,
-        yearly_retention_years=5,
-        week_of_year_for_yearly=26,
-    )["long_term_retention"]
-    assert ltr["weeklyRetention"] == "P12W"
-    assert ltr["monthlyRetention"] == "P12M"
-    assert ltr["yearlyRetention"] == "P5Y"
-    assert ltr["weekOfYear"] == 26
-
-
-def test_week_of_year_ignored_without_yearly():
-    """年次を使わないなら週番号は 0 に落ちる"""
-    ltr = backup_retention_config(week_of_year_for_yearly=26)["long_term_retention"]
-    assert ltr["weekOfYear"] == 0
-
-
 def test_geo_redundant_can_be_disabled():
     """地理冗長は切れる"""
     cfg = backup_retention_config(geo_redundant=False)
     assert cfg["backup_on_create"]["geoRedundantBackup"] == "Disabled"
 
 
-def test_weekly_must_exceed_automatic_retention():
-    """週次の長期保持が自動バックアップより短いと ValueError"""
-    with pytest.raises(ValueError, match="長くする"):
-        backup_retention_config(retention_days=35, weekly_retention_weeks=5)
-    assert backup_retention_config(retention_days=35, weekly_retention_weeks=6)
+def test_long_term_retention_not_returned():
+    """長期保持は Azure Backup のポリシーで設定するので、ここでは返さない"""
+    assert set(backup_retention_config()) == {"backup_on_create", "backup_on_update"}
 
 
-def test_range_checks():
-    """保持日数と長期保持と週番号の範囲外は ValueError"""
-    for kwargs in (
-        {"retention_days": 6},
-        {"retention_days": 36},
-        {"weekly_retention_weeks": 521},
-        {"monthly_retention_months": 121},
-        {"yearly_retention_years": 11},
-        {"week_of_year_for_yearly": 0},
-        {"week_of_year_for_yearly": 53},
-    ):
+def test_retention_days_range():
+    """保持日数は 7〜35 日"""
+    for days in (6, 36):
         with pytest.raises(ValueError):
-            backup_retention_config(**kwargs)
+            backup_retention_config(retention_days=days)
+    assert backup_retention_config(retention_days=7)["backup_on_create"][
+        "backupRetentionDays"
+    ] == 7
 
 
 def test_pure_and_serializable():

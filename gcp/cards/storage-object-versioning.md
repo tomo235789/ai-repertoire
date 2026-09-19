@@ -31,9 +31,9 @@ bucket.patch()
 ## Contract
 
 - `versioning.enabled` は常に `True`
-- 論理削除の保持は秒で渡す。`soft_delete_retention_days` を 86400 倍した値が入る
+- 論理削除の保持は秒で渡す。`soft_delete_retention_days` を 86400 倍した値が入る。JSON API の int64 は文字列なので値も文字列
 - ライフサイクル規則は 1 本。旧版を `daysSinceNoncurrentTime` と `numNewerVersions` の両方の条件で消す
-- `retentionPolicy` は `retention_period_seconds` を渡したときだけ入る
+- `retentionPolicy` は `retention_period_seconds` を渡したときだけ入る。値は文字列
 - `ValueError`: 残す版の数が 1 未満、旧版の削除日数が 1 未満、論理削除の保持日数が 7〜90 の外、保持期間が 1 秒未満
 - 返すのは Storage JSON API のプロパティ。SDK のオブジェクトへ載せるのは呼び出し側の仕事
 - 同じ入力に同じ出力を返し、返り値は `json.dumps` できる

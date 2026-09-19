@@ -28,9 +28,9 @@ def build(**kwargs: Any) -> dict[str, Any]:
 
 def test_public_access_is_prevented_and_acl_is_disabled() -> None:
     """公開アクセスは enforced で禁止し、均一バケットレベルアクセスで ACL を無効にする。"""
-    iam = build()["bucket"]["iam_configuration"]
-    assert iam["public_access_prevention"] == "enforced"
-    assert iam["uniform_bucket_level_access"]["enabled"] is True
+    iam = build()["bucket"]["iamConfiguration"]
+    assert iam["publicAccessPrevention"] == "enforced"
+    assert iam["uniformBucketLevelAccess"]["enabled"] is True
 
 
 def test_versioning_is_enabled_by_default() -> None:
@@ -41,7 +41,7 @@ def test_versioning_is_enabled_by_default() -> None:
 def test_cmek_is_included_only_when_given() -> None:
     """CMEK を渡したときだけ encryption を含める。渡さなければ Google 管理鍵。"""
     assert "encryption" not in build()["bucket"]
-    assert build(kms_key_name=KMS)["bucket"]["encryption"] == {"default_kms_key_name": KMS}
+    assert build(kms_key_name=KMS)["bucket"]["encryption"] == {"defaultKmsKeyName": KMS}
 
 
 def test_reader_members_become_object_viewer_binding() -> None:
@@ -83,7 +83,7 @@ def test_labels_and_retention_are_optional_and_sorted() -> None:
     """labels はキー順に並び、retention_policy は渡したときだけ入る。"""
     out = build(labels={"env": "prod", "app": "api"}, retention_period_seconds=3600)["bucket"]
     assert list(out["labels"]) == ["app", "env"]
-    assert out["retention_policy"] == {"retention_period": 3600}
+    assert out["retentionPolicy"] == {"retentionPeriod": "3600"}
 
 
 def test_is_pure_and_json_serializable() -> None:

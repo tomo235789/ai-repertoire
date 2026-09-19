@@ -59,19 +59,20 @@ def private_bucket_config(
         "project": project,
         "location": location.lower(),
         # 均一なバケットレベルアクセス。ACL を無効にして IAM だけで権限を決める
-        "iam_configuration": {
-            "uniform_bucket_level_access": {"enabled": True},
-            "public_access_prevention": "enforced",
+        "iamConfiguration": {
+            "uniformBucketLevelAccess": {"enabled": True},
+            "publicAccessPrevention": "enforced",
         },
-        "storage_class": "STANDARD",
+        "storageClass": "STANDARD",
         "versioning": {"enabled": True},
     }
     if kms_key_name is not None:
-        bucket["encryption"] = {"default_kms_key_name": kms_key_name}
+        bucket["encryption"] = {"defaultKmsKeyName": kms_key_name}
     if labels:
         bucket["labels"] = dict(sorted(labels.items()))
     if retention_period_seconds is not None:
-        bucket["retention_policy"] = {"retention_period": retention_period_seconds}
+        # int64 のフィールドは JSON API では文字列で渡す
+        bucket["retentionPolicy"] = {"retentionPeriod": str(retention_period_seconds)}
 
     bindings = []
     if members:

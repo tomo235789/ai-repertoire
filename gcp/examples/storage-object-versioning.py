@@ -40,10 +40,10 @@ def versioning_config(
 
     properties: dict = {
         "versioning": {"enabled": True},
-        "softDeletePolicy": {"retentionDurationSeconds": soft_delete_retention_days * 86400},
+        "softDeletePolicy": {"retentionDurationSeconds": str(soft_delete_retention_days * 86400)},
     }
     if retention_period_seconds is not None:
-        properties["retentionPolicy"] = {"retentionPeriod": retention_period_seconds}
+        properties["retentionPolicy"] = {"retentionPeriod": str(retention_period_seconds)}
 
     lifecycle = [
         {

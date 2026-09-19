@@ -24,11 +24,11 @@ def test_versioning_enabled():
 
 
 def test_soft_delete_in_seconds():
-    """論理削除の保持は秒で渡す"""
+    """論理削除の保持は秒。JSON API の int64 は文字列で渡す"""
     policy = versioning_config()["properties"]["softDeletePolicy"]
-    assert policy == {"retentionDurationSeconds": 7 * 86400}
+    assert policy == {"retentionDurationSeconds": str(7 * 86400)}
     policy = versioning_config(soft_delete_retention_days=90)["properties"]["softDeletePolicy"]
-    assert policy == {"retentionDurationSeconds": 90 * 86400}
+    assert policy == {"retentionDurationSeconds": str(90 * 86400)}
 
 
 def test_lifecycle_keeps_newer_versions():
@@ -42,7 +42,7 @@ def test_retention_policy_is_opt_in():
     """保持ポリシーは渡したときだけ入る"""
     assert "retentionPolicy" not in versioning_config()["properties"]
     props = versioning_config(retention_period_seconds=3600)["properties"]
-    assert props["retentionPolicy"] == {"retentionPeriod": 3600}
+    assert props["retentionPolicy"] == {"retentionPeriod": "3600"}
 
 
 def test_invalid_inputs():

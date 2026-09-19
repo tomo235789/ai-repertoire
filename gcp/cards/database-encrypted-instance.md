@@ -22,7 +22,7 @@ def encrypted_instance_config(name: str, region: str, *, project_id: str, databa
 
 ```python
 body = encrypted_instance_config(
-    "example-db", "asia-northeast1",
+    "example-db", "asia-northeast1", project_id="my-project",
     private_network="projects/my-project/global/networks/example-vpc",
 )
 service.instances().insert(project="my-project", body=body).execute()
