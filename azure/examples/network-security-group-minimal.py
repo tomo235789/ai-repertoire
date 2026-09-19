@@ -68,7 +68,7 @@ def minimal_inbound_rules(
 
     # 同じ組を 2 度書いても規則は 1 本にする
     unique = sorted(set(allowed))
-    if _FIRST_PRIORITY + _PRIORITY_STEP * len(unique) >= _DENY_PRIORITY:
+    if _FIRST_PRIORITY + _PRIORITY_STEP * (len(unique) - 1) >= _DENY_PRIORITY:
         raise ValueError("規則が多すぎる。送信元をまとめるか NSG を分ける")
 
     rules: list[dict] = []

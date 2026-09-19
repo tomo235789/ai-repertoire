@@ -49,8 +49,8 @@ def private_endpoint_config(
         endpoint と dns_zone_group（省略時は None）、必要なゾーン名 private_dns_zone を持つ dict
 
     Raises:
-        ValueError: 名前が空、ARM ID の形式違い、未知の group_id、
-            自動承認なのに依頼文を指定した場合
+        ValueError: 名前が空、サブネット・接続先・DNS ゾーンの ARM ID の形式違い、
+            未知の group_id、自動承認なのに依頼文を指定した場合
     """
     if not name:
         raise ValueError("name は空にできない")
@@ -78,6 +78,10 @@ def private_endpoint_config(
     zone = PRIVATE_DNS_ZONES[group_id]
     dns_zone_group = None
     if private_dns_zone_id is not None:
+        if not _RESOURCE_ID_RE.match(private_dns_zone_id):
+            raise ValueError(
+                f"private_dns_zone_id は ARM リソース ID を指定する: {private_dns_zone_id!r}"
+            )
         dns_zone_group = {
             "properties": {
                 "privateDnsZoneConfigs": [

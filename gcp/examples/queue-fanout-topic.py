@@ -6,6 +6,7 @@ Pub/Sub のトピックと購読の設定を返す。API は呼ばない。
 from __future__ import annotations
 
 import re
+from urllib.parse import urlsplit
 
 _NAME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9._~+%-]{2,254}$")
 _PATH_RE = {
@@ -26,13 +27,14 @@ def _check_resource(label: str, kind: str, value: str) -> None:
         raise ValueError(f"{label} の名前の形式が不正: {value!r}")
     if resource_id.lower().startswith("goog"):
         raise ValueError(f"{label} の ID は goog で始められない: {value!r}")
-_HTTPS_RE = re.compile(r"^https://[^\s]+$")
+
 
 
 def fanout_topic(
     topic: str,
     subscribers: dict[str, dict],
     *,
+    subscription_project_number: str | None = None,
     message_retention_days: int = 1,
     schema: str | None = None,
     kms_key_name: str | None = None,
@@ -41,6 +43,8 @@ def fanout_topic(
 
     Args:
         topic: トピックの完全名
+        subscription_project_number: 購読を持つプロジェクトの番号。
+            プッシュ配信を使うときは必須。サービスエージェントの IAM を組み立てる
         subscribers: 購読の完全名 -> 設定。設定のキーは
             filter（絞り込み式）、push_endpoint（プッシュ配信先の HTTPS URL）、
             push_service_account（プッシュ時に署名するサービスアカウント）
@@ -54,7 +58,8 @@ def fanout_topic(
     Raises:
         ValueError: 名前の形式違い、ID が goog で始まる、購読者が空、
             保持日数が範囲外、未知の設定キー、プッシュ配信先が HTTPS でない、
-            プッシュの配信先とサービスアカウントが対になっていない場合
+            プッシュの配信先とサービスアカウントが対になっていない、
+            プッシュ配信なのにプロジェクト番号が無い場合
     """
     _check_resource("topic", "topic", topic)
     if not subscribers:
@@ -72,6 +77,7 @@ def fanout_topic(
         topic_config["kms_key_name"] = kms_key_name
 
     subscription_configs: list[dict] = []
+    token_creator_bindings: list[dict] = []
     for name, options in sorted(subscribers.items()):
         _check_resource("subscription", "subscription", name)
         unknown = set(options) - {"filter", "push_endpoint", "push_service_account"}
@@ -92,17 +98,44 @@ def fanout_topic(
             )
         if "push_endpoint" in options:
             endpoint = options["push_endpoint"]
-            if not _HTTPS_RE.match(endpoint):
-                raise ValueError(f"プッシュ配信先は HTTPS にする: {endpoint!r}")
+            parts = urlsplit(endpoint)
+            if parts.scheme != "https" or not parts.hostname:
+                raise ValueError(
+                    f"プッシュ配信先はホスト名を持つ HTTPS の URL にする: {endpoint!r}"
+                )
             service_account = options.get("push_service_account")
             if not service_account:
                 raise ValueError(
                     f"プッシュ配信には署名するサービスアカウントが要る: {name!r}"
                 )
+            if not subscription_project_number:
+                raise ValueError(
+                    "プッシュ配信には subscription_project_number が要る。"
+                    "Pub/Sub のサービスエージェントが署名するため"
+                )
             config["push_config"] = {
                 "push_endpoint": endpoint,
                 "oidc_token": {"service_account_email": service_account},
             }
+            # サービスエージェントが署名できないとプッシュの JWT を作れない
+            token_creator_bindings.append(
+                {
+                    "resource": (
+                        f"projects/{service_account.split('@')[1].split('.')[0]}"
+                        f"/serviceAccounts/{service_account}"
+                    ),
+                    "role": "roles/iam.serviceAccountTokenCreator",
+                    "members": [
+                        "serviceAccount:service-"
+                        f"{subscription_project_number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+                    ],
+                }
+            )
         subscription_configs.append(config)
 
-    return {"topic_config": topic_config, "subscription_configs": subscription_configs}
+    return {
+        "topic_config": topic_config,
+        "subscription_configs": subscription_configs,
+        # プッシュ配信を使う購読ごとに 1 件。購読を作る前に与える
+        "token_creator_bindings": token_creator_bindings,
+    }

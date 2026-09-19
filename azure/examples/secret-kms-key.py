@@ -17,6 +17,8 @@ _ALLOWED_KEY_TYPES = {"RSA": (3072, 4096), "RSA-HSM": (3072, 4096)}
 # Key Vault が受け付けるローテーションポリシーの下限
 MIN_ROTATION_DAYS = 7
 MIN_EXPIRY_DAYS = 28
+# ローテーションから期限切れまでに要る最短の間隔
+MIN_ROTATION_TO_EXPIRY_GAP = 7
 
 
 def customer_managed_key(
@@ -69,10 +71,10 @@ def customer_managed_key(
         )
     if expiry_days < MIN_EXPIRY_DAYS:
         raise ValueError(f"有効期間は {MIN_EXPIRY_DAYS} 日以上: {expiry_days}")
-    if expiry_days <= rotation_period_days:
+    if expiry_days < rotation_period_days + MIN_ROTATION_TO_EXPIRY_GAP:
         raise ValueError(
-            "有効期間はローテーション間隔より長くする: "
-            f"{expiry_days} <= {rotation_period_days}"
+            f"有効期間はローテーション間隔より {MIN_ROTATION_TO_EXPIRY_GAP} 日以上長くする: "
+            f"{expiry_days} < {rotation_period_days} + {MIN_ROTATION_TO_EXPIRY_GAP}"
         )
     if not purge_protection:
         raise ValueError(

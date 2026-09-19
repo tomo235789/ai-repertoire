@@ -20,8 +20,13 @@ API_BUNDLES: dict[str, tuple[str, str]] = {
     "all-apis": ("all-apis", "p.googleapis.com"),
     "vpc-sc": ("vpc-sc", "p.googleapis.com"),
 }
-# バンドルごとに推奨される仮想 IP
-RECOMMENDED_ADDRESSES = {"all-apis": "199.36.153.8/30", "vpc-sc": "199.36.153.4/30"}
+# 限定公開の Google アクセスで使う VIP レンジ。
+# Private Service Connect のエンドポイントには自分で予約した内部 IP を使うので、
+# これは「同じバンドルを VIP で使う場合の対応表」であって推奨アドレスではない
+PRIVATE_GOOGLE_ACCESS_VIP_RANGES = {
+    "all-apis": "199.36.153.8/30",
+    "vpc-sc": "199.36.153.4/30",
+}
 
 
 def private_endpoint_config(

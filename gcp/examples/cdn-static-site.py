@@ -92,7 +92,9 @@ def static_site_config(
             "clientTtl": client_ttl_seconds,
             "negativeCaching": enable_negative_caching,
             "serveWhileStale": serve_while_stale_seconds,
-            # クエリ文字列でキャッシュを分けない
+            # バックエンドバケットのキャッシュキーは既定で Cloud Storage 固有の
+            # クエリパラメータを含む。whitelist はそこへ足す指定なので、
+            # 追加したいパラメータが無ければ空のまま
             "cacheKeyPolicy": {"includeHttpHeaders": [], "queryStringWhitelist": []},
         },
     }

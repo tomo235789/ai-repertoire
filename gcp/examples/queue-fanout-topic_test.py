@@ -22,6 +22,7 @@ TOPIC = "projects/my-project/topics/orders"
 BILLING = "projects/my-project/subscriptions/billing"
 AUDIT = "projects/my-project/subscriptions/audit"
 SA = "pusher@my-project.iam.gserviceaccount.com"
+PROJECT_NUMBER = "123456789012"
 
 
 def test_subscriptions_sorted():
@@ -44,22 +45,55 @@ def test_filter_is_opt_in():
     assert "filter" not in configs[AUDIT]
 
 
+def _push(**kw):
+    options = {"push_endpoint": "https://example.com/hook", "push_service_account": SA}
+    options.update(kw)
+    return fanout_topic(
+        TOPIC, {BILLING: options}, subscription_project_number=PROJECT_NUMBER
+    )
+
+
 def test_push_requires_oidc_token():
     """プッシュ配信は OIDC トークンで署名する"""
-    cfg = fanout_topic(
-        TOPIC, {BILLING: {"push_endpoint": "https://example.com/hook", "push_service_account": SA}}
-    )
-    push = cfg["subscription_configs"][0]["push_config"]
+    push = _push()["subscription_configs"][0]["push_config"]
     assert push["push_endpoint"] == "https://example.com/hook"
     assert push["oidc_token"] == {"service_account_email": SA}
+
+
+def test_push_returns_token_creator_binding():
+    """サービスエージェントが署名できないとプッシュの JWT を作れない"""
+    bindings = _push()["token_creator_bindings"]
+    assert bindings == [
+        {
+            "resource": f"projects/my-project/serviceAccounts/{SA}",
+            "role": "roles/iam.serviceAccountTokenCreator",
+            "members": [
+                "serviceAccount:service-123456789012@gcp-sa-pubsub.iam.gserviceaccount.com"
+            ],
+        }
+    ]
+    assert fanout_topic(TOPIC, {AUDIT: {}})["token_creator_bindings"] == []
+
+
+def test_push_needs_project_number():
+    """プッシュ配信にはサービスエージェントを組み立てる番号が要る"""
+    with pytest.raises(ValueError, match="subscription_project_number"):
+        fanout_topic(
+            TOPIC,
+            {BILLING: {"push_endpoint": "https://example.com/hook", "push_service_account": SA}},
+        )
+
+
+def test_push_endpoint_needs_hostname():
+    """ホスト名の無い URL は配信先にならない"""
+    with pytest.raises(ValueError, match="ホスト名"):
+        _push(push_endpoint="https:///callback")
 
 
 def test_push_validation():
     """HTTP のエンドポイントとサービスアカウント無しは ValueError"""
     with pytest.raises(ValueError, match="HTTPS"):
-        fanout_topic(
-            TOPIC, {BILLING: {"push_endpoint": "http://example.com", "push_service_account": SA}}
-        )
+        _push(push_endpoint="http://example.com")
     with pytest.raises(ValueError, match="サービスアカウント"):
         fanout_topic(TOPIC, {BILLING: {"push_endpoint": "https://example.com/hook"}})
 

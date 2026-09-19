@@ -43,6 +43,11 @@ def _is_sensitive(key: str) -> bool:
 # 関数が自分で埋めるキー。追加項目で上書きさせない
 RESERVED_KEYS = frozenset({"timestamp", "severity", "message", "operationId"})
 
+# /subscriptions/<id>/resourceGroups/<rg>/providers/<provider>/<type>/<name>
+ARM_RESOURCE_ID_RE = re.compile(
+    r"^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/[^/]+/[^/]+/[^/]+"
+)
+
 
 def _redact(key: str, value: Any) -> Any:
     """入れ子の dict と list も辿って、伏せるキーの値を置き換える"""
@@ -121,7 +126,7 @@ def diagnostic_setting(
     Note:
         保持期間は診断設定では決まらない。ワークスペースかテーブルの設定で決める。
     """
-    if not workspace_id.startswith("/subscriptions/"):
+    if not ARM_RESOURCE_ID_RE.match(workspace_id):
         raise ValueError(f"ワークスペースは ARM リソース ID で指定する: {workspace_id!r}")
     categories = tuple(log_categories)
     if not categories:

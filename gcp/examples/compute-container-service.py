@@ -90,7 +90,7 @@ def container_service_config(
         "service_account": service_account,
         "scaling": {"min_instance_count": min_instances, "max_instance_count": max_instances},
         "max_instance_request_concurrency": concurrency,
-        # 起動中だけでなく要求の処理中もリクエストに紐づく課金にする
+        # 第 2 世代のサンドボックス。Linux の互換性が高い（課金方式とは別の設定）
         "execution_environment": "EXECUTION_ENVIRONMENT_GEN2",
     }
     if vpc_connector is not None:

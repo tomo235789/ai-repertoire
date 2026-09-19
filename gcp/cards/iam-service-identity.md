@@ -35,7 +35,7 @@ add_bindings(cfg["workload_identity_binding"]["resource"], [cfg["workload_identi
 ## Contract
 
 - `email` は `<account_id>@<project_id>.iam.gserviceaccount.com`
-- `bindings` はロール名順に並び、メンバーはこのサービスアカウント 1 件だけ
+- `bindings` はロール名順に並び、メンバーはこのサービスアカウント 1 件だけ。サービスアカウントを作るだけでは権限が付かないので、返り値のバインディングを別に適用する
 - `display_name` を省略すると `account_id` がそのまま表示名になる
 - `workload_identity_binding` は Kubernetes の名前空間とサービスアカウント名を両方渡したときだけ返る。片方だけだと `ValueError`
 - `PRIVILEGED_ROLES` に当たるロールは `allow_privileged_roles=True` なしでは `ValueError`

@@ -36,7 +36,7 @@ compute.urlMaps().insert(project="my-project", body=cfg["url_map"]).execute()
 - 証明書はマネージド。ドメインは重複を除いて名前順に並ぶ
 - リソース間の参照は `global/backendBuckets/<name>` のような部分 URL。裸の名前では Compute Engine が解決できない
 - HTTP から HTTPS へ寄せる側も、URL マップ・プロキシ・ポート 80 の転送ルールの 3 つを返す。URL マップだけでは受け口が無い
-- `cacheKeyPolicy` は空。クエリ文字列でもヘッダーでもキャッシュを分けない
+- `cacheKeyPolicy` は空。バックエンドバケットのキャッシュキーは既定で Cloud Storage 固有のクエリパラメータを含み、`queryStringWhitelist` はそこへ足す指定。足すものが無いので空にしている
 - `ValueError`: 名前やバケット名やドメインの形式違い、ドメインが空、未知のキャッシュモード、上限が既定未満、ブラウザ側の保持が既定超
 - 同じ入力に同じ出力を返し、返り値は `json.dumps` できる
 

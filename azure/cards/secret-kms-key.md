@@ -33,7 +33,7 @@ client.keys.create_if_not_exist("example-rg", "example-kv", "data-key", cfg["key
 - `keyOps` は `wrapKey` / `unwrapKey` / `encrypt` / `decrypt` の 4 つだけ。署名には使えない
 - 鍵は `exportable: False`。取り出せない
 - ローテーションは作成から `rotation_period_days` 経った時点で走る（`timeAfterCreate`）。期限からの逆算では最初の版が回らない。期限 30 日前に通知が入る
-- `ValueError`: 名前の形式違い、鍵の種類が RSA / RSA-HSM 以外、鍵長が 3072 / 4096 以外、論理削除の保持日数が 7〜90 の外、ローテーション間隔が 7 日未満、有効期間が 28 日未満かローテーション間隔以下、`purge_protection=False`
+- `ValueError`: 名前の形式違い、鍵の種類が RSA / RSA-HSM 以外、鍵長が 3072 / 4096 以外、論理削除の保持日数が 7〜90 の外、ローテーション間隔が 7 日未満、有効期間が 28 日未満か、ローテーション間隔 + 7 日より短い、`purge_protection=False`
 - 同じ入力に同じ出力を返し、返り値は `json.dumps` できる
 
 ## Alternatives
@@ -49,7 +49,7 @@ client.keys.create_if_not_exist("example-rg", "example-kv", "data-key", cfg["key
 - 鍵をローテーションしても、古い版で暗号化されたデータは古い版で復号される。古い版を消してはいけない
 - 顧客管理鍵を使うリソースには、コンテナーに対する Key Vault Crypto Service Encryption User が要る。先に与えないと暗号化の設定が失敗する
 - `public_network_access="Disabled"` のコンテナーは、プライベートエンドポイントか信頼されたサービスの経路が無いと誰からも使えない
-- 鍵の有効期限が切れると暗号化操作が止まる。ローテーション間隔と有効期間の差は余裕を持たせる
+- 鍵の有効期限が切れると暗号化操作が止まる。Key Vault はローテーションから期限切れまでに 7 日以上の間隔を求める
 
 ## Test
 

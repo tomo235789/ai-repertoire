@@ -35,7 +35,7 @@ client.globalForwardingRules().insert(
 - `target_service` を渡すと `scope` は `"regional"` になり、`subnetwork` が必須。`dns_zone` は `None`
 - `allow_psc_global_access` は既定で `False`。他リージョンからの接続は明示したときだけ
 - `target_service` と `api_bundle` はどちらか一方だけ。両方でも両方省略でも `ValueError`
-- `RECOMMENDED_ADDRESSES` にバンドルごとの推奨 IP レンジが載っている
+- `PRIVATE_GOOGLE_ACCESS_VIP_RANGES` は限定公開の Google アクセスで使う VIP レンジ。Private Service Connect のエンドポイントには自分で予約した内部 IP を渡す
 - `ValueError`: 名前の形式違い、IP アドレスが不正か IPv6、未知のバンドル、個別サービスにサブネットが無い
 - バンドル向けの転送ルール名は英小文字と数字だけで 20 文字まで。ハイフンは使えない
 - 同じ入力に同じ出力を返し、返り値は `json.dumps` できる

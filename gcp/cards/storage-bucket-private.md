@@ -33,13 +33,13 @@ bucket.set_iam_policy(Policy.from_api_repr(out["iam_policy"]))
 
 ## Contract
 
-- `iam_configuration.public_access_prevention` は `"enforced"`。組織ポリシーに関係なくバケット単位で公開を禁じる
-- `iam_configuration.uniform_bucket_level_access.enabled` は `True`。ACL を無効にして IAM だけで権限を決める
+- `iamConfiguration.publicAccessPrevention` は `"enforced"`。組織ポリシーに関係なくバケット単位で公開を禁じる
+- `iamConfiguration.uniformBucketLevelAccess.enabled` は `True`。ACL を無効にして IAM だけで権限を決める
 - `versioning.enabled` は既定で `True`（誤削除・上書きから守る）
 - `reader_members` は `roles/storage.objectViewer` の binding 1 つにまとまる。重複は除かれ、渡した順序を保つ。1 つも渡さなければ `bindings` は空で、誰にも権限を与えない
 - `allUsers` / `allAuthenticatedUsers` を渡すと `ValueError`。公開配信が要るなら `cdn-static-site` を使う
-- `kms_key_name` を渡したときだけ `encryption.default_kms_key_name` が入る。渡さなければ Google 管理鍵で暗号化される（保存時暗号化は常に有効）
-- `labels` はキー順に並べ替えて入る。`retention_period_seconds` は渡したときだけ `retention_policy` に入る
+- `kms_key_name` を渡したときだけ `encryption.defaultKmsKeyName` が入る。渡さなければ Google 管理鍵で暗号化される（保存時暗号化は常に有効）
+- `labels` はキー順に並べ替えて入る。`retention_period_seconds` は渡したときだけ `retentionPolicy` に入る
 - 名前（3〜63 文字・小文字・`goog` を含まない）、プロジェクト ID、CMEK のフルパス、正の保持期間、メンバーの接頭辞（`user:` / `serviceAccount:` / `group:`）を検証し、違反は `ValueError`
 - 返すのは Storage JSON API のプロパティと IAM ポリシーの dict。SDK のオブジェクトへ変換するのは呼び出し側の仕事
 - 同じ入力に同じ出力を返し、引数の配列や辞書を変更しない。返り値は `json.dumps` できる

@@ -55,13 +55,21 @@ def _redact(key: str, value: Any) -> Any:
         return [_redact(key, v) for v in value]
     return value
 _MAX_MESSAGE_CHARS = 100 * 1024
+# LogEntry の上限は 256 KiB。メタデータのぶんを見込んで保守的に切る
+MAX_ENTRY_BYTES = 200 * 1024
 
 # Cloud Logging がシンクの転送先として受け付ける形式
-SINK_DESTINATION_PREFIXES = (
-    "storage.googleapis.com/",
-    "bigquery.googleapis.com/",
-    "pubsub.googleapis.com/",
-    "logging.googleapis.com/",
+_SINK_DESTINATION_RES = (
+    re.compile(r"^storage\.googleapis\.com/[a-z0-9][a-z0-9._-]{1,61}[a-z0-9]$"),
+    re.compile(r"^bigquery\.googleapis\.com/projects/[^/]+/datasets/[A-Za-z0-9_]+$"),
+    re.compile(r"^pubsub\.googleapis\.com/projects/[^/]+/topics/[^/]+$"),
+    re.compile(r"^logging\.googleapis\.com/projects/[^/]+/locations/[^/]+/buckets/[^/]+$"),
+)
+SINK_DESTINATION_FORMS = (
+    "storage.googleapis.com/<bucket>",
+    "bigquery.googleapis.com/projects/<project>/datasets/<dataset>",
+    "pubsub.googleapis.com/projects/<project>/topics/<topic>",
+    "logging.googleapis.com/projects/<project>/locations/<location>/buckets/<bucket>",
 )
 
 
@@ -84,7 +92,7 @@ def log_line(
 
     Raises:
         ValueError: タイムスタンプの形式違い、未知の重大度、本文が空か長すぎる、
-            予約キーを fields に入れた場合
+            予約キーを fields に入れた、1 行が MAX_ENTRY_BYTES を超える場合
     """
     if not _TIMESTAMP_RE.match(timestamp):
         raise ValueError(f"タイムスタンプは ISO 8601 で渡す: {timestamp!r}")
@@ -105,7 +113,14 @@ def log_line(
         record["logging.googleapis.com/trace"] = trace
     for key, value in sorted(extra.items()):
         record[key] = _redact(key, value)
-    return json.dumps(record, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    line = json.dumps(record, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    encoded = len(line.encode("utf-8"))
+    if encoded > MAX_ENTRY_BYTES:
+        raise ValueError(
+            f"1 行が {MAX_ENTRY_BYTES} バイトを超える: {encoded} バイト。"
+            "長い内容はストレージに置いて参照だけ載せる"
+        )
+    return line
 
 
 def log_sink(
@@ -130,9 +145,9 @@ def log_sink(
     """
     if not name:
         raise ValueError("name は空にできない")
-    if not any(destination.startswith(prefix) for prefix in SINK_DESTINATION_PREFIXES):
+    if not any(pattern.match(destination) for pattern in _SINK_DESTINATION_RES):
         raise ValueError(
-            f"転送先は {SINK_DESTINATION_PREFIXES} のいずれかで始める: {destination!r}"
+            f"転送先は {SINK_DESTINATION_FORMS} のいずれかの形にする: {destination!r}"
         )
     if not log_filter:
         raise ValueError("log_filter は空にできない。全ログを流すと費用が跳ねる")

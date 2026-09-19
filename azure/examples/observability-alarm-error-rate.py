@@ -6,9 +6,16 @@
 
 from __future__ import annotations
 
+import re
+
 # 評価間隔と対象期間は ISO 8601 の duration で渡す
 _ALLOWED_WINDOW_MINUTES = (5, 10, 15, 30, 60, 120, 180, 360, 720, 1440)
 _SEVERITY_RANGE = range(0, 5)
+
+# /subscriptions/<id>/resourceGroups/<rg>/providers/<provider>/<type>/<name>
+ARM_RESOURCE_ID_RE = re.compile(
+    r"^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/[^/]+/[^/]+/[^/]+"
+)
 
 
 def _iso_minutes(minutes: int) -> str:
@@ -46,15 +53,25 @@ def error_rate_alert(
         ScheduledQueryRule の properties にそのまま渡せる dict
 
     Raises:
-        ValueError: 名前が空、ARM ID の形式違い、しきい値が範囲外、
+        ValueError: 名前が空、ARM ID の形式違い、整数であるべき引数が整数でない、
+            しきい値が範囲外、
             集計期間が許可されていない、評価間隔が集計期間より長い、
             最小件数が 1 未満、重大度が 0〜4 の外の場合
     """
     if not name:
         raise ValueError("name は空にできない")
     for label, value in (("scope_id", scope_id), ("action_group_id", action_group_id)):
-        if not value.startswith("/subscriptions/"):
+        if not ARM_RESOURCE_ID_RE.match(value):
             raise ValueError(f"{label} は ARM リソース ID を指定する: {value!r}")
+    for label, value in (
+        ("window_minutes", window_minutes),
+        ("evaluation_minutes", evaluation_minutes),
+        ("min_requests", min_requests),
+        ("severity", severity),
+    ):
+        # bool は int の派生なので別に弾く
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise ValueError(f"{label} は整数で指定する: {value!r}")
     if not 0 < threshold_percent <= 100:
         raise ValueError(f"しきい値は 0 より大きく 100 以下: {threshold_percent}")
     if window_minutes not in _ALLOWED_WINDOW_MINUTES:
