@@ -158,6 +158,14 @@ def validate_usage_call(card: Card, source: str) -> List[str]:
         positional_count = len(node.args)
         arguments = target.args
         position_only = {a.arg for a in arguments.posonlyargs}
+        # **kwargs が無ければ、位置専用の引数名をキーワードで渡すことはできない
+        if arguments.kwarg is None:
+            by_keyword = sorted(given & position_only)
+            if by_keyword:
+                errors.append(
+                    f"Usage: {node.func.id} の位置専用の引数 {by_keyword} を"
+                    "キーワードで渡している"
+                )
         required_positional, required_keyword = _required_parameters(target)
         # 位置引数は前から順に埋まる。位置専用の引数は名前では埋められない
         missing = [
