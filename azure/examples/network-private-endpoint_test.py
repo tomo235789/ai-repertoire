@@ -114,6 +114,13 @@ def test_dns_zone_id_must_be_private_dns_zone():
         private_endpoint_config("pe", SUBNET, TARGET, "blob", private_dns_zone_id=wrong)
 
 
+def test_subnet_id_must_be_a_subnet():
+    """サブネットは virtualNetworks/<vnet>/subnets/<name> の形"""
+    vnet_only = SUBNET.rsplit("/subnets/", 1)[0]
+    with pytest.raises(ValueError, match="subnet_id"):
+        private_endpoint_config("pe", vnet_only, TARGET, "blob")
+
+
 def test_pure_and_serializable():
     """同じ入力に同じ出力を返し、JSON にできる"""
     a = private_endpoint_config("pe", SUBNET, TARGET, "blob")

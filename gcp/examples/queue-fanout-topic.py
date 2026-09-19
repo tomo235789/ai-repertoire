@@ -31,8 +31,8 @@ def _check_resource(label: str, kind: str, value: str) -> None:
 
 
 _SERVICE_ACCOUNT_RE = re.compile(
-    r"^(?:[a-z][a-z0-9-]{4,28}[a-z0-9]@([a-z][a-z0-9-]{4,28}[a-z0-9])\.iam"
-    r"|\d+-compute@(developer))\.gserviceaccount\.com$"
+    r"^(?:[a-z][a-z0-9-]{4,28}[a-z0-9]@(?P<project>[a-z][a-z0-9-]{4,28}[a-z0-9])\.iam"
+    r"|(?P<number>\d+)-compute@developer)\.gserviceaccount\.com$"
 )
 
 
@@ -132,17 +132,23 @@ def fanout_topic(
                     "プッシュの署名に使うサービスアカウントは "
                     f"<name>@<project>.iam.gserviceaccount.com の形にする: {service_account!r}"
                 )
-            sa_project = match.group(1) or match.group(2)
-            topic_project = name.split("/")[1]
-            if sa_project != topic_project:
+            subscription_project = name.split("/")[1]
+            # 既定のコンピュートアカウントはプロジェクト ID ではなく番号を名前に持つ
+            if match.group("number") is not None:
+                owner, expected = match.group("number"), subscription_project_number
+            else:
+                owner, expected = match.group("project"), subscription_project
+            if owner != expected:
                 raise ValueError(
                     "プッシュの署名に使うサービスアカウントは購読と同じプロジェクトに置く: "
-                    f"{sa_project!r} != {topic_project!r}"
+                    f"{owner!r} != {expected!r}"
                 )
             # サービスエージェントが署名できないとプッシュの JWT を作れない
             token_creator_bindings.append(
                 {
-                    "resource": f"projects/{sa_project}/serviceAccounts/{service_account}",
+                    "resource": (
+                        f"projects/{subscription_project}/serviceAccounts/{service_account}"
+                    ),
                     "role": "roles/iam.serviceAccountTokenCreator",
                     "members": [
                         "serviceAccount:service-"

@@ -21,10 +21,14 @@ PRIVATE_DNS_ZONES: dict[str, str] = {
     "sites": "privatelink.azurewebsites.net",
 }
 
-_RESOURCE_ID_RE = re.compile(r"^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/.+$")
+_RESOURCE_ID_RE = re.compile(r"^/subscriptions/[^/\r\n]+/resourceGroups/[^/\r\n]+/providers/[^\r\n]+$")
+_SUBNET_ID_RE = re.compile(
+    r"^/subscriptions/[^/\r\n]+/resourceGroups/[^/\r\n]+"
+    r"/providers/Microsoft\.Network/virtualNetworks/[^/\r\n]+/subnets/[^/\r\n]+$"
+)
 _DNS_ZONE_ID_RE = re.compile(
-    r"^/subscriptions/[^/]+/resourceGroups/[^/]+"
-    r"/providers/Microsoft\.Network/privateDnsZones/[^/]+$"
+    r"^/subscriptions/[^/\r\n]+/resourceGroups/[^/\r\n]+"
+    r"/providers/Microsoft\.Network/privateDnsZones/[^/\r\n]+$"
 )
 
 
@@ -58,9 +62,14 @@ def private_endpoint_config(
     """
     if not name:
         raise ValueError("name は空にできない")
-    for label, value in (("subnet_id", subnet_id), ("target_resource_id", target_resource_id)):
-        if not _RESOURCE_ID_RE.fullmatch(value):
-            raise ValueError(f"{label} は ARM リソース ID を指定する: {value!r}")
+    if not _SUBNET_ID_RE.fullmatch(subnet_id):
+        raise ValueError(
+            f"subnet_id は virtualNetworks/<vnet>/subnets/<name> の ARM ID: {subnet_id!r}"
+        )
+    if not _RESOURCE_ID_RE.fullmatch(target_resource_id):
+        raise ValueError(
+            f"target_resource_id は ARM リソース ID を指定する: {target_resource_id!r}"
+        )
     if group_id not in PRIVATE_DNS_ZONES:
         raise ValueError(f"未知のサブリソース: {group_id!r}")
     if request_message and not manual_approval:

@@ -91,6 +91,13 @@ def test_integer_parameters_checked():
         _cfg(severity=True)
 
 
+def test_action_group_must_be_action_group():
+    """通知先は Microsoft.Insights/actionGroups のリソース"""
+    other = ACTION.replace("/actionGroups/", "/components/")
+    with pytest.raises(ValueError, match="action_group_id"):
+        error_rate_alert("error-rate", SCOPE, other)
+
+
 def test_invalid_inputs():
     """名前・ARM ID・しきい値・期間・件数・重大度の不正は ValueError"""
     with pytest.raises(ValueError):

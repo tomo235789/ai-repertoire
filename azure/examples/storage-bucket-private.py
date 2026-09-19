@@ -16,8 +16,8 @@ _CONTAINER_RE = re.compile(r"^[a-z0-9]([a-z0-9-]{1,61}[a-z0-9])$")
 BLOB_DATA_READER_ROLE_ID = "2a2b9908-6ea1-4ae2-8e65-a410df84e7d1"
 PRINCIPAL_TYPES = ("User", "Group", "ServicePrincipal")
 _UAMI_RE = re.compile(
-    r"^/subscriptions/[^/]+/resourceGroups/[^/]+"
-    r"/providers/Microsoft\.ManagedIdentity/userAssignedIdentities/[^/]+$"
+    r"^/subscriptions/[^/\r\n]+/resourceGroups/[^/\r\n]+"
+    r"/providers/Microsoft\.ManagedIdentity/userAssignedIdentities/[^/\r\n]+$"
 )
 _ASSIGNMENT_NAMESPACE = uuid.UUID("6ba7b812-9dad-11d1-80b4-00c04fd430c8")
 

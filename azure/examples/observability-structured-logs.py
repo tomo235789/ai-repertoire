@@ -44,8 +44,12 @@ def _is_sensitive(key: str) -> bool:
 RESERVED_KEYS = frozenset({"timestamp", "severity", "message", "operationId"})
 
 # /subscriptions/<id>/resourceGroups/<rg>/providers/<provider>/<type>/<name>
+_WORKSPACE_ID_RE = re.compile(
+    r"^/subscriptions/[^/\r\n]+/resourceGroups/[^/\r\n]+"
+    r"/providers/Microsoft\.OperationalInsights/workspaces/[^/\r\n]+$"
+)
 ARM_RESOURCE_ID_RE = re.compile(
-    r"^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/[^/]+(/[^/]+/[^/]+)+$"
+    r"^/subscriptions/[^/\r\n]+/resourceGroups/[^/\r\n]+/providers/[^/\r\n]+(/[^/\r\n]+/[^/\r\n]+)+$"
 )
 
 
@@ -126,8 +130,11 @@ def diagnostic_setting(
     Note:
         保持期間は診断設定では決まらない。ワークスペースかテーブルの設定で決める。
     """
-    if not ARM_RESOURCE_ID_RE.fullmatch(workspace_id):
-        raise ValueError(f"ワークスペースは ARM リソース ID で指定する: {workspace_id!r}")
+    if not _WORKSPACE_ID_RE.fullmatch(workspace_id):
+        raise ValueError(
+            "ワークスペースは Microsoft.OperationalInsights/workspaces の ARM ID: "
+            f"{workspace_id!r}"
+        )
     categories = tuple(log_categories)
     if not categories:
         raise ValueError("log_categories は 1 件以上必要")

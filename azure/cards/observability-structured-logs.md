@@ -39,7 +39,7 @@ client.diagnostic_settings.create_or_update(resource_id, "to-law", cfg)
 - `diagnostic_setting` の `logAnalyticsDestinationType` は常に `"Dedicated"`
 - カテゴリは重複を除いて名前順に並ぶ
 - 保持期間は診断設定では決まらないので `retentionPolicy` を出さない。ワークスペースかテーブルの設定で決める
-- `ValueError`: タイムスタンプが ISO 8601 でない、重大度が既定の 5 つ以外、本文が空か 32 KiB 超、`RESERVED_KEYS` を `fields` に入れた、ワークスペースが `/subscriptions/<id>/resourceGroups/<rg>/providers/...` の形でない、カテゴリが空
+- `ValueError`: タイムスタンプが ISO 8601 でない、重大度が既定の 5 つ以外、本文が空か 32 KiB 超、`RESERVED_KEYS` を `fields` に入れた、ワークスペースが `Microsoft.OperationalInsights/workspaces` のリソースでない、カテゴリが空
 - 同じ入力に同じ出力を返す。現在時刻も乱数も使わない
 
 ## Alternatives

@@ -142,6 +142,16 @@ def test_push_service_account_format_and_project():
         _push(push_service_account=other)
 
 
+def test_default_compute_service_account_matched_by_number():
+    """既定のコンピュートアカウントは番号でプロジェクトを判断する"""
+    cfg = _push(push_service_account=f"{PROJECT_NUMBER}-compute@developer.gserviceaccount.com")
+    assert cfg["token_creator_bindings"][0]["resource"].startswith(
+        "projects/my-project/serviceAccounts/"
+    )
+    with pytest.raises(ValueError, match="同じプロジェクト"):
+        _push(push_service_account="999-compute@developer.gserviceaccount.com")
+
+
 def test_invalid_inputs():
     """名前・購読者・保持日数・設定キーの不正は ValueError"""
     with pytest.raises(ValueError):

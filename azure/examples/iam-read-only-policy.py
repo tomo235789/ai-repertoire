@@ -13,7 +13,7 @@ import uuid
 BUILT_IN_READER_ROLE_ID = "acdd72a7-3385-48ef-bd42-f606fba81ae7"
 
 _PROVIDER_RE = re.compile(r"^Microsoft\.[A-Za-z0-9]+$")
-_SCOPE_RE = re.compile(r"^/subscriptions/([^/]+)(/.*)?$")
+_SCOPE_RE = re.compile(r"^/subscriptions/([^/\r\n]+)(/.*)?$")
 _ROLE_NAMESPACE = uuid.UUID("6ba7b813-9dad-11d1-80b4-00c04fd430c8")
 
 # `/read` の形をしているのに秘密値そのものを返すため、読み取り専用から外す操作

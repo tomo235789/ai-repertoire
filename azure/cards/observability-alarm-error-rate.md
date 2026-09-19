@@ -33,7 +33,7 @@ client.scheduled_query_rules.create_or_update(
 - 期間は ISO 8601 の duration。60 分の倍数は `"PT1H"` のように時間で表す
 - クエリは `min_requests` に満たない期間を落とす。少ない件数で 100% にならない
 - `auto_mitigate` は既定で `True`。回復すると自動で解決扱いになる
-- `ValueError`: 名前が空、監視対象か通知先が `/subscriptions/<id>/resourceGroups/<rg>/providers/...` の形でない、整数であるべき引数が整数でない、しきい値が 0 以下か 100 超、集計期間か評価間隔が許可された値以外、評価間隔が集計期間より長い、最小件数が 1 未満、重大度が 0〜4 の外
+- `ValueError`: 名前が空、監視対象が `/subscriptions/<id>/resourceGroups/<rg>/providers/...` の形でない、通知先が `Microsoft.Insights/actionGroups` のリソースでない、整数であるべき引数が整数でない、しきい値が 0 以下か 100 超、集計期間か評価間隔が許可された値以外、評価間隔が集計期間より長い、最小件数が 1 未満、重大度が 0〜4 の外
 - 同じ入力に同じ出力を返し、返り値は `json.dumps` できる
 
 ## Alternatives

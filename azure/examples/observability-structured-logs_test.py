@@ -142,6 +142,13 @@ def test_redaction_normalizes_key_spelling():
     assert record["note"] == "d"
 
 
+def test_workspace_must_be_log_analytics():
+    """ワークスペースは Microsoft.OperationalInsights/workspaces のリソース"""
+    other = WORKSPACE.replace("/workspaces/", "/clusters/")
+    with pytest.raises(ValueError, match="ワークスペース"):
+        diagnostic_setting(other, ["A"])
+
+
 def test_pure_and_serializable():
     """同じ入力に同じ出力を返し、JSON にできる"""
     a = diagnostic_setting(WORKSPACE, ["A"])

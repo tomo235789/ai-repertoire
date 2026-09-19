@@ -93,6 +93,18 @@ def test_user_assigned_identity_must_be_arm_id():
         service_identity_config(PRINCIPAL, SCOPE, user_assigned_identity_id="not-an-arm-id")
 
 
+def test_arm_ids_reject_newlines():
+    """ARM ID に改行を含められない"""
+    with pytest.raises(ValueError):
+        service_identity_config(PRINCIPAL, SCOPE + "\n")
+    uami = (
+        "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg"
+        "/providers/Microsoft.ManagedIdentity/userAssignedIdentities/example-mi\n"
+    )
+    with pytest.raises(ValueError):
+        service_identity_config(PRINCIPAL, SCOPE, user_assigned_identity_id=uami)
+
+
 def test_pure_and_serializable():
     """入力を変更せず、返り値は JSON にできる"""
     scope = SCOPE

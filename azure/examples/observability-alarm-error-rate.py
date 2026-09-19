@@ -13,8 +13,12 @@ _ALLOWED_WINDOW_MINUTES = (5, 10, 15, 30, 60, 120, 180, 360, 720, 1440)
 _SEVERITY_RANGE = range(0, 5)
 
 # /subscriptions/<id>/resourceGroups/<rg>/providers/<provider>/<type>/<name>
+_ACTION_GROUP_RE = re.compile(
+    r"^/subscriptions/[^/\r\n]+/resourceGroups/[^/\r\n]+"
+    r"/providers/Microsoft\.Insights/actionGroups/[^/\r\n]+$"
+)
 ARM_RESOURCE_ID_RE = re.compile(
-    r"^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/[^/]+(/[^/]+/[^/]+)+$"
+    r"^/subscriptions/[^/\r\n]+/resourceGroups/[^/\r\n]+/providers/[^/\r\n]+(/[^/\r\n]+/[^/\r\n]+)+$"
 )
 
 
@@ -60,9 +64,13 @@ def error_rate_alert(
     """
     if not name:
         raise ValueError("name は空にできない")
-    for label, value in (("scope_id", scope_id), ("action_group_id", action_group_id)):
-        if not ARM_RESOURCE_ID_RE.fullmatch(value):
-            raise ValueError(f"{label} は ARM リソース ID を指定する: {value!r}")
+    if not ARM_RESOURCE_ID_RE.fullmatch(scope_id):
+        raise ValueError(f"scope_id は ARM リソース ID を指定する: {scope_id!r}")
+    if not _ACTION_GROUP_RE.fullmatch(action_group_id):
+        raise ValueError(
+            "action_group_id は Microsoft.Insights/actionGroups の ARM ID: "
+            f"{action_group_id!r}"
+        )
     for label, value in (
         ("window_minutes", window_minutes),
         ("evaluation_minutes", evaluation_minutes),

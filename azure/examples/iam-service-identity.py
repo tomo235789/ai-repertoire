@@ -25,10 +25,10 @@ BUILT_IN_ROLES: dict[str, str] = {
 PRIVILEGE_ESCALATING_ROLES = frozenset({"Owner", "User Access Administrator"})
 
 _UUID_RE = re.compile(r"^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$")
-_SCOPE_RE = re.compile(r"^/subscriptions/([^/]+)(/.*)?$")
+_SCOPE_RE = re.compile(r"^/subscriptions/([^/\r\n]+)(/.*)?$")
 _UAMI_RE = re.compile(
-    r"^/subscriptions/[^/]+/resourceGroups/[^/]+"
-    r"/providers/Microsoft\.ManagedIdentity/userAssignedIdentities/[^/]+$"
+    r"^/subscriptions/[^/\r\n]+/resourceGroups/[^/\r\n]+"
+    r"/providers/Microsoft\.ManagedIdentity/userAssignedIdentities/[^/\r\n]+$"
 )
 
 # ロール割り当て名を入力から決めるための固定名前空間（呼び出しごとに変わらない）

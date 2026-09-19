@@ -36,7 +36,7 @@ client.role_definitions.create_or_update(
 - `type` は常に `"CustomRole"`
 - `role_definition_id` は role_name と先頭の割り当てスコープから `uuid5` で決まる。同じ入力なら同じ ID になり、作り直しても定義が重複しない
 - 管理プレーンの `actions` が空でも、`data_actions` があればロールを作れる
-- `ValueError`: actions と data_actions が両方空、assignable_scopes が空、スコープが `/subscriptions/` でも管理グループでもない、管理グループが 2 件以上、データプレーンの操作と管理グループの併用、`*` や `Microsoft.Storage/*` のような広すぎるワイルドカード、`PRIVILEGE_ESCALATING_ACTIONS` に当たる操作（ワイルドカードで包んだ形も含む）、actions と not_actions（data 側も同様）の重複
+- `ValueError`: actions と data_actions が両方空、assignable_scopes が空、スコープが `/subscriptions/` でも管理グループでもない、管理グループが 2 件以上、データプレーンの操作と管理グループの併用、`*` や `Microsoft.Storage/*` のような広すぎるワイルドカード、`PRIVILEGE_ESCALATING_ACTIONS` に当たる操作（`Microsoft.Authorization/*/write` のようにワイルドカードで一致する形も含む）、actions と not_actions（data 側も同様）の重複
 - 引数のリストを変更せず、返り値は `json.dumps` できる
 
 ## Alternatives

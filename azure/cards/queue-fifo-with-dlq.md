@@ -33,7 +33,7 @@ client.queues.create_or_update("example-rg", "example-ns", "orders", props)
 - 期間はすべて ISO 8601 の duration 文字列。90 秒なら `"PT1M30S"`、1 日なら `"P1D"`
 - `duplicate_detection_seconds=0` で重複検出は無効になり、窓のキー自体が入らない
 - `enablePartitioning` は常に `False`
-- `ValueError`: 名前の形式違い（1〜260 文字。1 文字でも有効）、ロック時間が 1〜300 秒の外、配信回数が 1 未満、最大サイズが 1 未満、重複検出の窓が 0 でも 20 秒〜7 日でもない、メッセージの寿命が重複検出の窓以下
+- `ValueError`: 名前の形式違い（1〜260 文字。1 文字でも有効）、ロック時間が 1〜300 秒の外、配信回数が 1 未満、最大サイズが `ALLOWED_SIZES_MEGABYTES` に無い値、重複検出の窓が 0 でも 20 秒〜7 日でもない、メッセージの寿命が重複検出の窓以下
 - 同じ入力に同じ出力を返し、返り値は `json.dumps` できる
 
 ## Alternatives

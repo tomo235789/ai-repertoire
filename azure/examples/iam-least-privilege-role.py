@@ -8,10 +8,11 @@ from __future__ import annotations
 
 import re
 import uuid
+from fnmatch import fnmatchcase
 
-_SCOPE_RE = re.compile(r"^/subscriptions/[^/]+(/.*)?$")
+_SCOPE_RE = re.compile(r"^/subscriptions/[^/\r\n]+(/.*)?$")
 # 管理グループ配下のスコープも割り当て可能スコープになる
-_MG_SCOPE_RE = re.compile(r"^/providers/Microsoft\.Management/managementGroups/[^/]+$")
+_MG_SCOPE_RE = re.compile(r"^/providers/Microsoft\.Management/managementGroups/[^/\r\n]+$")
 
 # ロール定義名を入力から決めるための固定名前空間（呼び出しごとに変わらない）
 _ROLE_NAMESPACE = uuid.UUID("6ba7b811-9dad-11d1-80b4-00c04fd430c8")
@@ -28,13 +29,13 @@ PRIVILEGE_ESCALATING_ACTIONS = (
 
 
 def _is_escalating(op: str) -> bool:
-    """権限昇格につながる操作か、それを含むワイルドカードかを見る"""
+    """権限昇格につながる操作か、それに一致するワイルドカードかを見る"""
     if op in PRIVILEGE_ESCALATING_ACTIONS:
         return True
-    if not op.endswith("*"):
+    if "*" not in op:
         return False
-    prefix = op[:-1]
-    return any(action.startswith(prefix) for action in PRIVILEGE_ESCALATING_ACTIONS)
+    # Microsoft.Authorization/*/write のように途中に * があっても捕まえる
+    return any(fnmatchcase(action, op) for action in PRIVILEGE_ESCALATING_ACTIONS)
 
 
 def _check_operations(label: str, operations: tuple[str, ...]) -> None:

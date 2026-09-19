@@ -16,10 +16,10 @@ DEFAULT_CACHE_SECONDS = 86400
 HTML_CACHE_SECONDS = 60
 
 _PROFILE_PATH = (
-    r"/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\.Cdn/profiles/[^/]+"
+    r"/subscriptions/[^/\r\n]+/resourceGroups/[^/\r\n]+/providers/Microsoft\.Cdn/profiles/[^/\r\n]+"
 )
-_ORIGIN_GROUP_RE = re.compile(rf"^{_PROFILE_PATH}/originGroups/[^/]+$")
-_CUSTOM_DOMAIN_RE = re.compile(rf"^{_PROFILE_PATH}/customDomains/[^/]+$")
+_ORIGIN_GROUP_RE = re.compile(rf"^{_PROFILE_PATH}/originGroups/[^/\r\n]+$")
+_CUSTOM_DOMAIN_RE = re.compile(rf"^{_PROFILE_PATH}/customDomains/[^/\r\n]+$")
 
 SECURITY_HEADERS: dict[str, str] = {
     "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",

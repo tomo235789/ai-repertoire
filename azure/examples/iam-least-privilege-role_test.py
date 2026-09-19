@@ -133,6 +133,12 @@ def test_role_writing_actions_rejected():
     )
 
 
+def test_wildcard_in_the_middle_rejected():
+    """途中にワイルドカードがあっても権限昇格の操作を捕まえる"""
+    with pytest.raises(ValueError, match="ロールを書き換えられる"):
+        least_privilege_role("R", "説明", ["Microsoft.Authorization/*/write"], [SCOPE])
+
+
 def test_pure_and_serializable():
     """引数のリストを変更せず、返り値は JSON にできる"""
     actions = [READ_BLOB]

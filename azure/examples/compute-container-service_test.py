@@ -158,6 +158,14 @@ def test_trailing_newline_rejected():
             container_service_config("example-api", bad, ENV_ID)
 
 
+def test_registry_port_range():
+    """レジストリのポートは 1〜65535"""
+    assert container_service_config("example-api", "localhost:65535/api:1", ENV_ID)
+    for bad in ("localhost:0/api:1", "localhost:65536/api:1"):
+        with pytest.raises(ValueError, match="ポート"):
+            container_service_config("example-api", bad, ENV_ID)
+
+
 def test_pure_and_serializable():
     """引数を変更せず、返り値は JSON にできる"""
     env = {"A": "1"}

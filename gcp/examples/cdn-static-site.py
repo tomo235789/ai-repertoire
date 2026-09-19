@@ -12,7 +12,7 @@ _NAME_RE = re.compile(r"^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$")
 _DOMAIN_RE = re.compile(r"^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$")
 # Cloud Storage のバケット名。全体 222 文字、ドットで区切った各要素は 63 文字まで。
 # goog 接頭辞、google の類似表記、IP アドレス形式は使えない
-_BUCKET_LABEL_RE = re.compile(r"^[a-z0-9]([a-z0-9_-]{0,61}[a-z0-9])?$")
+_BUCKET_LABEL_RE = re.compile(r"^[a-z0-9](?:[a-z0-9_-]{0,61}[a-z0-9])?$")
 _IPV4_LIKE_RE = re.compile(r"^\d{1,3}(\.\d{1,3}){3}$")
 # o と 0、l と 1 を入れ替えた表記も拒否される
 _GOOGLE_LIKE_RE = re.compile(r"g[o0]{2}g[l1]e")
