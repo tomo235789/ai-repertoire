@@ -95,14 +95,22 @@ def test_secret_named_settings_require_key_vault_reference():
         with pytest.raises(ValueError, match="秘密値"):
             _cfg(app_settings={key: "hunter2"})
     cfg = _cfg(
-        app_settings={"DB_PASSWORD": "@Microsoft.KeyVault(SecretUri=https://kv.vault.azure.net/secrets/db)"}
+        app_settings={"DB_PASSWORD": "@Microsoft.KeyVault(SecretUri=https://example-kv.vault.azure.net/secrets/db)"}
     )
     assert any(s["name"] == "DB_PASSWORD" for s in cfg["properties"]["siteConfig"]["appSettings"])
 
 
 def test_key_vault_reference_must_be_complete():
     """参照の形をしていない値は通さない"""
-    for bad in ("@Microsoft.KeyVault(hunter2)", "@Microsoft.KeyVault(SecretUri=hunter2)"):
+    bad_references = (
+        "@Microsoft.KeyVault(hunter2)",
+        "@Microsoft.KeyVault(SecretUri=hunter2)",
+        # データプレーンのホストでない
+        "@Microsoft.KeyVault(SecretUri=https://invalid.example/secrets/db)",
+        # 金庫名にアンダースコアは使えない
+        "@Microsoft.KeyVault(VaultName=example_kv;SecretName=db)",
+    )
+    for bad in bad_references:
         with pytest.raises(ValueError, match="秘密値"):
             _cfg(app_settings={"DB_PASSWORD": bad})
     ok = "@Microsoft.KeyVault(VaultName=example-kv;SecretName=db-password)"

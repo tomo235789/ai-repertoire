@@ -108,6 +108,14 @@ def test_range_checks():
             _cfg(**kwargs)
 
 
+def test_project_number_rejects_unicode_digits():
+    """全角数字はサービスエージェントの名前にならない"""
+    with pytest.raises(ValueError, match="プロジェクト番号"):
+        ordered_subscription_with_dlq(
+            TOPIC, SUB, DLQ, subscription_project_number="１２３"
+        )
+
+
 def test_names_must_be_fully_qualified():
     """種別まで含めた完全名でないと ValueError"""
     with pytest.raises(ValueError):

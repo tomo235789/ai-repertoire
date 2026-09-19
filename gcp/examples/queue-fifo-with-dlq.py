@@ -85,7 +85,7 @@ def ordered_subscription_with_dlq(
         raise ValueError(
             f"試行回数は {MIN_DELIVERY_ATTEMPTS}〜{MAX_DELIVERY_ATTEMPTS}: {max_delivery_attempts}"
         )
-    if not subscription_project_number.isdigit():
+    if not re.fullmatch(r"[0-9]+", subscription_project_number):
         raise ValueError(
             f"プロジェクト番号は数字で指定する: {subscription_project_number!r}"
         )

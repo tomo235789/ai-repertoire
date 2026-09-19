@@ -16,6 +16,7 @@ _ALLOWED_CPU = (0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0)
 _TAG_RE = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9._-]{0,127}$")
 _REPOSITORY_RE = re.compile(r"^[a-z0-9]+([._-][a-z0-9]+)*(/[a-z0-9]+([._-][a-z0-9]+)*)*$")
 _DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
+_HOST_RE = re.compile(r"^[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?(:\d{1,5})?$")
 
 
 def _split_image(image: str) -> tuple[str, str, str]:
@@ -83,7 +84,9 @@ def container_service_config(
     """
     if not _NAME_RE.match(name) or not 2 <= len(name) <= 32:
         raise ValueError(f"Container App 名は英小文字・数字・ハイフンで 2〜32 文字: {name!r}")
-    _, repository, reference = _split_image(image)
+    host, repository, reference = _split_image(image)
+    if host and not _HOST_RE.match(host):
+        raise ValueError(f"レジストリのホスト名が不正: {image!r}")
     if not _REPOSITORY_RE.match(repository):
         raise ValueError(f"イメージのリポジトリ名が不正: {image!r}")
     if "@" in image:

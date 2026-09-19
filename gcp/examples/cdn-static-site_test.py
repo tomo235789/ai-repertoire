@@ -121,6 +121,13 @@ def test_dotted_bucket_names_allowed():
     assert static_site_config("example-site", long_dotted, ["www.example.com"])
 
 
+def test_google_lookalike_bucket_names_rejected():
+    """google の類似表記も Cloud Storage は拒否する"""
+    for bad in ("g00gle-site", "goog1e-site", "goog-site"):
+        with pytest.raises(ValueError, match="バケット名"):
+            static_site_config("example-site", bad, ["www.example.com"])
+
+
 def test_pure_and_serializable():
     """同じ入力に同じ出力を返し、JSON にできる"""
     a = _cfg()

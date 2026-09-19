@@ -30,6 +30,12 @@ def _check_resource(label: str, kind: str, value: str) -> None:
 
 
 
+_SERVICE_ACCOUNT_RE = re.compile(
+    r"^(?:[a-z][a-z0-9-]{4,28}[a-z0-9]@([a-z][a-z0-9-]{4,28}[a-z0-9])\.iam"
+    r"|\d+-compute@(developer))\.gserviceaccount\.com$"
+)
+
+
 def fanout_topic(
     topic: str,
     subscribers: dict[str, dict],
@@ -120,13 +126,23 @@ def fanout_topic(
                 "push_endpoint": endpoint,
                 "oidc_token": {"service_account_email": service_account},
             }
+            match = _SERVICE_ACCOUNT_RE.match(service_account)
+            if match is None:
+                raise ValueError(
+                    "プッシュの署名に使うサービスアカウントは "
+                    f"<name>@<project>.iam.gserviceaccount.com の形にする: {service_account!r}"
+                )
+            sa_project = match.group(1) or match.group(2)
+            topic_project = name.split("/")[1]
+            if sa_project != topic_project:
+                raise ValueError(
+                    "プッシュの署名に使うサービスアカウントは購読と同じプロジェクトに置く: "
+                    f"{sa_project!r} != {topic_project!r}"
+                )
             # サービスエージェントが署名できないとプッシュの JWT を作れない
             token_creator_bindings.append(
                 {
-                    "resource": (
-                        f"projects/{service_account.split('@')[1].split('.')[0]}"
-                        f"/serviceAccounts/{service_account}"
-                    ),
+                    "resource": f"projects/{sa_project}/serviceAccounts/{service_account}",
                     "role": "roles/iam.serviceAccountTokenCreator",
                     "members": [
                         "serviceAccount:service-"

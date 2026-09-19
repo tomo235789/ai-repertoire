@@ -40,7 +40,7 @@ client.create_sink(parent="projects/my-project", sink=sink)
 - `RESERVED_KEYS` を `fields` に入れると `ValueError`
 - `log_sink` の `exclusions` は除外名順に並び、すべて `disabled: False`
 - `bigquery_options` は転送先が BigQuery のときだけ入る
-- `ValueError`: タイムスタンプが ISO 8601 でない、未知の重大度、本文が空か 100 KiB 超、1 行が `MAX_ENTRY_BYTES`（200 KiB）を超える、シンク名が空、転送先が `SINK_DESTINATION_FORMS` のいずれの形でもない、バケット転送先の名前が Cloud Storage の命名規則から外れる、フィルタが空
+- `ValueError`: タイムスタンプが ISO 8601 でない、未知の重大度、本文が空か 100 KiB 超、1 行が `MAX_ENTRY_BYTES`（200 KiB）を超える、シンク名が空、転送先が `SINK_DESTINATION_FORMS`（バケット・BigQuery データセット・Pub/Sub トピック・プロジェクト・ログバケット）のいずれの形でもない、バケット名や Pub/Sub のトピック ID が命名規則から外れる、フィルタが空
 - 同じ入力に同じ出力を返す。現在時刻も乱数も使わない
 
 ## Alternatives

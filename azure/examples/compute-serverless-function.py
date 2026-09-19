@@ -12,11 +12,17 @@ _NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$")
 
 # 値が Key Vault 参照でなければならない設定名の語尾
 SECRET_NAME_SUFFIXES = ("password", "secret", "token", "apikey", "accesskey", "key")
-# 受け付ける参照は SecretUri 形式か VaultName + SecretName 形式のどちらか
+# 受け付ける参照は SecretUri 形式か VaultName + SecretName 形式のどちらか。
+# 金庫名とシークレット名は英数字とハイフンだけ（アンダースコアは使えない）
+_VAULT_NAME = r"[a-zA-Z][a-zA-Z0-9-]{1,22}[a-zA-Z0-9]"
+_SECRET_NAME = r"[a-zA-Z0-9-]{1,127}"
+_SECRET_VERSION = r"[0-9a-f]{32}"
 _KEY_VAULT_REFERENCE_RE = re.compile(
     r"^@Microsoft\.KeyVault\("
-    r"(SecretUri=https://[^/\s)]+/secrets/[^/\s)]+(/[^/\s)]+)?"
-    r"|VaultName=[^;\s)]+;\s*SecretName=[^;\s)]+(;\s*SecretVersion=[^;\s)]+)?)"
+    rf"(SecretUri=https://{_VAULT_NAME}\.vault\.azure\.net/secrets/"
+    rf"{_SECRET_NAME}(/{_SECRET_VERSION})?/?"
+    rf"|VaultName={_VAULT_NAME};\s*SecretName={_SECRET_NAME}"
+    rf"(;\s*SecretVersion={_SECRET_VERSION})?)"
     r"\)$"
 )
 

@@ -144,6 +144,13 @@ def test_image_reference_grammar():
             container_service_config("example-api", bad, ENV_ID)
 
 
+def test_registry_host_validated():
+    """ホストとみなした部分の形式も見る"""
+    for bad in (":5000/api:1", "-bad.example.com/api:1", "example.com:99999999/api:1"):
+        with pytest.raises(ValueError):
+            container_service_config("example-api", bad, ENV_ID)
+
+
 def test_pure_and_serializable():
     """引数を変更せず、返り値は JSON にできる"""
     env = {"A": "1"}

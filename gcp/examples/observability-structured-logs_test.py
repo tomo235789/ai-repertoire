@@ -90,11 +90,28 @@ def test_redaction_is_recursive():
     assert record["items"] == [{"token": "[REDACTED]"}, {"id": 1}]
 
 
+def test_pubsub_topic_id_validated():
+    """トピック ID は英字始まりの 3 文字以上で、goog で始められない"""
+    for bad in (
+        "pubsub.googleapis.com/projects/my-project/topics/t",
+        "pubsub.googleapis.com/projects/my-project/topics/googlogs",
+        "pubsub.googleapis.com/projects/my-project/topics/my logs",
+    ):
+        with pytest.raises(ValueError, match="転送先"):
+            log_sink("s", bad, "true")
+
+
+def test_project_sink_destination_allowed():
+    """プロジェクト宛ての転送も受け付ける"""
+    dest = "logging.googleapis.com/projects/my-project"
+    assert log_sink("s", dest, "true")["destination"] == dest
+
+
 def test_sink_destination_must_be_known():
     """転送先は Cloud Logging が受け付ける形式だけ"""
     with pytest.raises(ValueError, match="転送先"):
         log_sink("s", "example.invalid/resource", "true")
-    for dest in (BUCKET_DEST, BQ_DEST, "pubsub.googleapis.com/projects/p/topics/t"):
+    for dest in (BUCKET_DEST, BQ_DEST, "pubsub.googleapis.com/projects/my-project/topics/logs"):
         assert log_sink("s", dest, "true")["destination"] == dest
 
 

@@ -37,7 +37,8 @@ client.web_apps.begin_create_or_update(
 - `httpsOnly` は `True`、`minTlsVersion` は `"1.2"`、`ftpsState` は `"Disabled"`
 - `alwaysOn` は `always_on` をそのまま反映する。従量課金プランでは効かない
 - アプリ設定は名前順に並ぶ。予約済みのキーを `app_settings` で上書きすると `ValueError`
-- 値に `AccountKey=` や `SharedAccessKey=` が含まれると `ValueError`。秘密は Key Vault 参照で渡す
+- 値に `AccountKey=` や `SharedAccessKey=` が含まれると `ValueError`
+- 名前が秘密用途（`*password` / `*secret` / `*token` / `*apikey` / `*accesskey` / `*key`）の設定は、`@Microsoft.KeyVault(SecretUri=...)` か `@Microsoft.KeyVault(VaultName=...;SecretName=...)` の形でなければ `ValueError`。金庫名とシークレット名の文字種まで見る
 - `ValueError`: 名前が英小文字・数字・ハイフンの 3〜60 文字でない、`RUNTIMES` に無いランタイム
 - 引数を変更せず、返り値は `json.dumps` できる
 

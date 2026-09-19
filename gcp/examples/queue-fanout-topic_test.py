@@ -133,6 +133,15 @@ def test_project_number_must_be_ascii_digits():
         )
 
 
+def test_push_service_account_format_and_project():
+    """署名に使うサービスアカウントは形式を見てから、購読と同じプロジェクトか確かめる"""
+    with pytest.raises(ValueError, match="サービスアカウント"):
+        _push(push_service_account="runner")
+    other = "pusher@other-project.iam.gserviceaccount.com"
+    with pytest.raises(ValueError, match="同じプロジェクト"):
+        _push(push_service_account=other)
+
+
 def test_invalid_inputs():
     """名前・購読者・保持日数・設定キーの不正は ValueError"""
     with pytest.raises(ValueError):

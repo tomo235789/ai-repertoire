@@ -44,7 +44,7 @@ def customer_managed_key(
         key_type: "RSA" か "RSA-HSM"
         key_size: 3072 か 4096
         rotation_period_days: 自動ローテーションの間隔
-        expiry_days: 鍵の有効期間。ローテーション間隔より長くする
+        expiry_days: 鍵の有効期間。ローテーション間隔より 7 日以上長くする
         purge_protection: 消去保護。True にすると論理削除後の完全削除を禁じる
         soft_delete_retention_days: 論理削除の保持日数。7〜90
 
