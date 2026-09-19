@@ -15,7 +15,7 @@ status: public
 ## Signature
 
 ```python
-def error_rate_alarm(name: str, namespace: str, errors_metric: str, requests_metric: str, dimensions: Mapping[str, str], threshold_percent: float, period: int = 60, evaluation_periods: int = 5, alarm_actions: Sequence[str] = (), *, ok_actions: Sequence[str] = (), datapoints_to_alarm: int | None = None) -> dict[str, Any]
+def error_rate_alarm(name: str, namespace: str, errors_metric: str, requests_metric: str, dimensions: Mapping[str, str], threshold_percent: float, period: int = 60, evaluation_periods: int = 5, alarm_actions: Sequence[str] = (), *, ok_actions: Sequence[str] = (), datapoints_to_alarm: int | None = None, description: str | None = None) -> dict[str, Any]
 ```
 
 ## Usage

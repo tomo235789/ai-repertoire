@@ -80,6 +80,7 @@ docs/                        計画書
 - SQL のカードは `lib` に方言（postgresql / mysql / sqlite / bigquery）、`fn` に構文名を書く
 - クラウド（terraform / aws / gcp / azure）のカードは「業務上の要求」を入力、「SDK やテンプレートに渡す設定」を出力とする純粋関数にする。API 呼び出し・認証・現在時刻・乱数は関数の外に出す
 - `verified` は実際に実行して確認した日。未検証なら書かない
+- examples が Python の言語（python / sql / aws / gcp / azure）は、`## Signature` の引数と `## Usage` の呼び出しが実装と一致しているか CI が検査する
 
 雛形は `typescript/cards/collection-chunk.md`。
 

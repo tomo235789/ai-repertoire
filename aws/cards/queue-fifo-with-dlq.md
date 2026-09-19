@@ -16,6 +16,7 @@ status: public
 
 ```python
 def fifo_queue_with_dlq(name: str, region: str, account_id: str, max_receive_count: int = 5, visibility_timeout: int = 30, kms_key_id: str | None = None, *, content_based_deduplication: bool = False, tags: Mapping[str, str] | None = None) -> dict[str, Any]
+def dlq_name_for(name: str) -> str
 ```
 
 ## Usage
