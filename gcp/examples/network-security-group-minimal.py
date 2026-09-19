@@ -47,7 +47,7 @@ def minimal_firewall_rules(
             allowed が空、ポートが範囲外、CIDR の形式違い、
             管理用ポートを 0.0.0.0/0 に開こうとした場合
     """
-    if not _NAME_RE.match(target_tag):
+    if not _NAME_RE.fullmatch(target_tag):
         raise ValueError(f"ネットワークタグの形式が不正: {target_tag!r}")
 
     if protocol not in {"tcp", "udp"}:

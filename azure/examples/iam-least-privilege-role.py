@@ -92,10 +92,10 @@ def least_privilege_role(
     if not assignable_scopes:
         raise ValueError("assignable_scopes は 1 件以上必要")
     for scope in assignable_scopes:
-        if not (_SCOPE_RE.match(scope) or _MG_SCOPE_RE.match(scope)):
+        if not (_SCOPE_RE.fullmatch(scope) or _MG_SCOPE_RE.fullmatch(scope)):
             raise ValueError(f"割り当て可能スコープの形式が不正: {scope!r}")
     # カスタムロールに指定できる管理グループは 1 件まで
-    management_groups = [s for s in assignable_scopes if _MG_SCOPE_RE.match(s)]
+    management_groups = [s for s in assignable_scopes if _MG_SCOPE_RE.fullmatch(s)]
     if len(management_groups) > 1:
         raise ValueError("assignable_scopes に指定できる管理グループは 1 件まで")
     if management_groups and (data_actions or not_data_actions):

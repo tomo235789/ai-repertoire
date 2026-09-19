@@ -34,15 +34,15 @@ def private_bucket_config(
 
     返り値は {"bucket": create_bucket のプロパティ, "iam_policy": set_iam_policy の引数}。
     """
-    if not _BUCKET_NAME_RE.match(name):
+    if not _BUCKET_NAME_RE.fullmatch(name):
         raise ValueError(f"バケット名が Cloud Storage の命名規則に合わない: {name!r}")
     if "goog" in name:
         raise ValueError(f"バケット名に goog を含められない: {name!r}")
-    if not _PROJECT_RE.match(project):
+    if not _PROJECT_RE.fullmatch(project):
         raise ValueError(f"プロジェクト ID の形式が不正: {project!r}")
     if not location:
         raise ValueError("location は必須（例: asia-northeast1）")
-    if kms_key_name is not None and not _KMS_KEY_RE.match(kms_key_name):
+    if kms_key_name is not None and not _KMS_KEY_RE.fullmatch(kms_key_name):
         raise ValueError(f"CMEK は projects/.../cryptoKeys/... の形式にする: {kms_key_name!r}")
     if retention_period_seconds is not None and retention_period_seconds <= 0:
         raise ValueError("retention_period_seconds は正の整数にする")
@@ -51,7 +51,7 @@ def private_bucket_config(
     for member in members:
         if member in PUBLIC_MEMBERS:
             raise ValueError(f"公開メンバーは許可しない: {member}（公開配信は cdn-static-site を使う）")
-        if not _MEMBER_RE.match(member):
+        if not _MEMBER_RE.fullmatch(member):
             raise ValueError(f"メンバーは user: / serviceAccount: / group: で始める: {member!r}")
 
     bucket: dict[str, Any] = {

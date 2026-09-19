@@ -57,9 +57,9 @@ def customer_managed_key(
         ValueError: 名前の形式違い、鍵の種類やサイズが許可外、保持日数が範囲外、
             有効期間がローテーション間隔以下、消去保護を無効にしようとした場合
     """
-    if not _VAULT_RE.match(vault_name):
+    if not _VAULT_RE.fullmatch(vault_name):
         raise ValueError(f"Key Vault 名の形式が不正: {vault_name!r}")
-    if not _KEY_RE.match(key_name):
+    if not _KEY_RE.fullmatch(key_name):
         raise ValueError(f"鍵の名前の形式が不正: {key_name!r}")
     if key_type not in _ALLOWED_KEY_TYPES:
         raise ValueError(f"鍵の種類は RSA か RSA-HSM: {key_type!r}")

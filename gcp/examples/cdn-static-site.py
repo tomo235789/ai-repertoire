@@ -12,7 +12,7 @@ _NAME_RE = re.compile(r"^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$")
 _DOMAIN_RE = re.compile(r"^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$")
 # Cloud Storage のバケット名。全体 222 文字、ドットで区切った各要素は 63 文字まで。
 # goog 接頭辞、google の類似表記、IP アドレス形式は使えない
-_BUCKET_LABEL_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{1,61}[a-z0-9]$|^[a-z0-9]{3}$")
+_BUCKET_LABEL_RE = re.compile(r"^[a-z0-9]([a-z0-9_-]{0,61}[a-z0-9])?$")
 _IPV4_LIKE_RE = re.compile(r"^\d{1,3}(\.\d{1,3}){3}$")
 # o と 0、l と 1 を入れ替えた表記も拒否される
 _GOOGLE_LIKE_RE = re.compile(r"g[o0]{2}g[l1]e")
@@ -22,9 +22,9 @@ def _is_valid_bucket_name(name: str) -> bool:
     """Cloud Storage が受け付けるバケット名かを判定する"""
     if not 3 <= len(name) <= 222 or ".." in name:
         return False
-    if name.startswith("goog") or _GOOGLE_LIKE_RE.search(name) or _IPV4_LIKE_RE.match(name):
+    if name.startswith("goog") or _GOOGLE_LIKE_RE.search(name) or _IPV4_LIKE_RE.fullmatch(name):
         return False
-    return all(_BUCKET_LABEL_RE.match(label) for label in name.split("."))
+    return all(_BUCKET_LABEL_RE.fullmatch(label) for label in name.split("."))
 
 CACHE_MODES = ("CACHE_ALL_STATIC", "USE_ORIGIN_HEADERS", "FORCE_CACHE_ALL")
 # TLS の最低バージョンを決めるプロファイル
@@ -65,7 +65,7 @@ def static_site_config(
         ValueError: 名前やドメインの形式違い、ドメインが空、未知のキャッシュモード、
             保持時間の大小関係が逆の場合
     """
-    if not _NAME_RE.match(name):
+    if not _NAME_RE.fullmatch(name):
         raise ValueError(f"名前の形式が不正: {name!r}")
     if not _is_valid_bucket_name(bucket_name):
         raise ValueError(f"バケット名の形式が不正: {bucket_name!r}")
@@ -73,7 +73,7 @@ def static_site_config(
     if not unique_domains:
         raise ValueError("domains は 1 件以上必要")
     for domain in unique_domains:
-        if not _DOMAIN_RE.match(domain):
+        if not _DOMAIN_RE.fullmatch(domain):
             raise ValueError(f"ドメインの形式が不正: {domain!r}")
     if cache_mode not in CACHE_MODES:
         raise ValueError(f"キャッシュモードは {CACHE_MODES} のいずれか: {cache_mode!r}")

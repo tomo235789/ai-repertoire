@@ -57,13 +57,13 @@ def static_site_config(
             ARM リソース ID でない、キャッシュ秒数が負、
             HTML のキャッシュが静的ファイルより長い場合
     """
-    if not _HOST_RE.match(origin_host):
+    if not _HOST_RE.fullmatch(origin_host):
         raise ValueError(f"オリジンのホスト名の形式が不正: {origin_host!r}")
-    if custom_domain_id is not None and not _CUSTOM_DOMAIN_RE.match(custom_domain_id):
+    if custom_domain_id is not None and not _CUSTOM_DOMAIN_RE.fullmatch(custom_domain_id):
         raise ValueError(
             f"独自ドメインは AFDDomain の ARM リソース ID で指定する: {custom_domain_id!r}"
         )
-    if not _ORIGIN_GROUP_RE.match(origin_group_id):
+    if not _ORIGIN_GROUP_RE.fullmatch(origin_group_id):
         raise ValueError(
             f"オリジングループは ARM リソース ID で指定する: {origin_group_id!r}"
         )

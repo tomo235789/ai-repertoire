@@ -69,7 +69,7 @@ def serverless_function_config(
         ValueError: 名前の形式違い、未知のランタイム、
             秘密用途の名前に Key Vault 参照でない値を入れた場合
     """
-    if not _NAME_RE.match(name):
+    if not _NAME_RE.fullmatch(name):
         raise ValueError(f"関数アプリ名は英小文字・数字・ハイフンで 3〜60 文字: {name!r}")
     if runtime not in RUNTIMES:
         raise ValueError(f"未知のランタイム: {runtime!r}")
@@ -93,7 +93,7 @@ def serverless_function_config(
             "accountkey=" in value.lower() or "sharedaccesskey=" in value.lower()
         )
         if looks_like_connection_string or (
-            _is_secret_name(key) and not _KEY_VAULT_REFERENCE_RE.match(value)
+            _is_secret_name(key) and not _KEY_VAULT_REFERENCE_RE.fullmatch(value)
         ):
             raise ValueError(
                 f"アプリ設定に秘密値を直接入れない（{key}）。Key Vault 参照を使う"

@@ -63,9 +63,9 @@ def service_identity_config(
             ユーザー割り当て ID が ARM リソース ID でない、
             権限昇格ロールを明示許可なしに指定した場合
     """
-    if not _UUID_RE.match(principal_id):
+    if not _UUID_RE.fullmatch(principal_id):
         raise ValueError(f"principal_id は GUID を指定する: {principal_id!r}")
-    if not _SCOPE_RE.match(scope):
+    if not _SCOPE_RE.fullmatch(scope):
         raise ValueError(f"scope は /subscriptions/ から始まる ARM ID を指定する: {scope!r}")
     if role_name not in BUILT_IN_ROLES:
         raise ValueError(f"未知の組み込みロール: {role_name!r}")
@@ -75,7 +75,7 @@ def service_identity_config(
             "必要なら allow_privileged_role=True を明示する"
         )
 
-    if user_assigned_identity_id is not None and not _UAMI_RE.match(user_assigned_identity_id):
+    if user_assigned_identity_id is not None and not _UAMI_RE.fullmatch(user_assigned_identity_id):
         raise ValueError(
             "ユーザー割り当て ID は Microsoft.ManagedIdentity の ARM リソース ID を指定する: "
             f"{user_assigned_identity_id!r}"
@@ -91,7 +91,7 @@ def service_identity_config(
 
     # ロール定義はサブスクリプションスコープに置かれる。
     # 割り当て先がリソースグループでも、定義 ID は /subscriptions/<id> から作る
-    subscription_scope = f"/subscriptions/{_SCOPE_RE.match(scope).group(1)}"
+    subscription_scope = f"/subscriptions/{_SCOPE_RE.fullmatch(scope).group(1)}"
     role_definition_id = (
         f"{subscription_scope}/providers/Microsoft.Authorization/roleDefinitions/"
         f"{BUILT_IN_ROLES[role_name]}"

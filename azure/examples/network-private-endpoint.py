@@ -59,7 +59,7 @@ def private_endpoint_config(
     if not name:
         raise ValueError("name は空にできない")
     for label, value in (("subnet_id", subnet_id), ("target_resource_id", target_resource_id)):
-        if not _RESOURCE_ID_RE.match(value):
+        if not _RESOURCE_ID_RE.fullmatch(value):
             raise ValueError(f"{label} は ARM リソース ID を指定する: {value!r}")
     if group_id not in PRIVATE_DNS_ZONES:
         raise ValueError(f"未知のサブリソース: {group_id!r}")
@@ -82,7 +82,7 @@ def private_endpoint_config(
     zone = PRIVATE_DNS_ZONES[group_id]
     dns_zone_group = None
     if private_dns_zone_id is not None:
-        if not _DNS_ZONE_ID_RE.match(private_dns_zone_id):
+        if not _DNS_ZONE_ID_RE.fullmatch(private_dns_zone_id):
             raise ValueError(
                 "private_dns_zone_id は Microsoft.Network/privateDnsZones の "
                 f"ARM リソース ID を指定する: {private_dns_zone_id!r}"

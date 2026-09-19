@@ -17,13 +17,13 @@ _PATH_RE = {
 
 def _check_resource(label: str, kind: str, value: str) -> None:
     """projects/<project>/<種別>/<id> の形と、末尾の ID の形式を見る"""
-    match = _PATH_RE[kind].match(value)
+    match = _PATH_RE[kind].fullmatch(value)
     if match is None:
         raise ValueError(
             f"{label} は projects/<project>/{kind}s/<id> の完全名で指定する: {value!r}"
         )
     resource_id = match.group(1)
-    if not _NAME_RE.match(resource_id):
+    if not _NAME_RE.fullmatch(resource_id):
         raise ValueError(f"{label} の名前の形式が不正: {value!r}")
     if resource_id.lower().startswith("goog"):
         raise ValueError(f"{label} の ID は goog で始められない: {value!r}")
@@ -126,7 +126,7 @@ def fanout_topic(
                 "push_endpoint": endpoint,
                 "oidc_token": {"service_account_email": service_account},
             }
-            match = _SERVICE_ACCOUNT_RE.match(service_account)
+            match = _SERVICE_ACCOUNT_RE.fullmatch(service_account)
             if match is None:
                 raise ValueError(
                     "プッシュの署名に使うサービスアカウントは "

@@ -59,7 +59,7 @@ def private_endpoint_config(
             target_service と api_bundle をどちらも指定しないか両方指定した場合、
             個別サービスにサブネットを渡さなかった場合
     """
-    if not _NAME_RE.match(name):
+    if not _NAME_RE.fullmatch(name):
         raise ValueError(f"エンドポイント名の形式が不正: {name!r}")
     try:
         parsed_ip = ipaddress.ip_address(ip_address)
@@ -74,7 +74,7 @@ def private_endpoint_config(
         # Google API へのバンドルは IPv4 の仮想 IP でしか作れない
         if parsed_ip.version != 4:
             raise ValueError(f"API バンドルへのエンドポイントは IPv4 のみ: {ip_address!r}")
-        if not _BUNDLE_NAME_RE.match(name):
+        if not _BUNDLE_NAME_RE.fullmatch(name):
             raise ValueError(
                 f"バンドル向けの転送ルール名は英小文字と数字で 20 文字まで: {name!r}"
             )

@@ -81,7 +81,7 @@ def log_line(
     Raises:
         ValueError: タイムスタンプの形式違い、未知の重大度、本文が空か長すぎる場合
     """
-    if not _TIMESTAMP_RE.match(timestamp):
+    if not _TIMESTAMP_RE.fullmatch(timestamp):
         raise ValueError(f"タイムスタンプは ISO 8601 で渡す: {timestamp!r}")
     if severity not in _SEVERITIES:
         raise ValueError(f"重大度は {_SEVERITIES} のいずれか: {severity!r}")
@@ -126,7 +126,7 @@ def diagnostic_setting(
     Note:
         保持期間は診断設定では決まらない。ワークスペースかテーブルの設定で決める。
     """
-    if not ARM_RESOURCE_ID_RE.match(workspace_id):
+    if not ARM_RESOURCE_ID_RE.fullmatch(workspace_id):
         raise ValueError(f"ワークスペースは ARM リソース ID で指定する: {workspace_id!r}")
     categories = tuple(log_categories)
     if not categories:

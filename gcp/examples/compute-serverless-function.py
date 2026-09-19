@@ -60,7 +60,7 @@ def serverless_function_config(
             インスタンス数が範囲外、タイムアウトが上限超（HTTP 関数は 3600 秒、
             イベント関数は 540 秒）、HTTP 関数に再試行を指定した場合
     """
-    if not _NAME_RE.match(name):
+    if not _NAME_RE.fullmatch(name):
         raise ValueError(f"関数名の形式が不正: {name!r}")
     if runtime not in RUNTIMES:
         raise ValueError(f"ランタイムは {RUNTIMES} のいずれか: {runtime!r}")
@@ -68,7 +68,7 @@ def serverless_function_config(
         raise ValueError("entry_point は空にできない")
     if "@" not in service_account:
         raise ValueError(f"サービスアカウントはメールアドレスで指定する: {service_account!r}")
-    if not _MEMORY_RE.match(memory):
+    if not _MEMORY_RE.fullmatch(memory):
         raise ValueError(f"メモリの形式が不正: {memory!r}")
     max_timeout = (
         MAX_HTTP_TIMEOUT_SECONDS if event_trigger_topic is None else MAX_EVENT_TIMEOUT_SECONDS

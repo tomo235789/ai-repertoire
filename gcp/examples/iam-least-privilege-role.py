@@ -58,7 +58,7 @@ def least_privilege_role(
         ValueError: ロール ID や権限の形式違い、権限が空、未知のステージ、
             権限昇格につながる権限を明示許可なしに含めた場合
     """
-    if not _ROLE_ID_RE.match(role_id):
+    if not _ROLE_ID_RE.fullmatch(role_id):
         raise ValueError(f"ロール ID の形式が不正: {role_id!r}")
     if not title:
         raise ValueError("title は空にできない")
@@ -71,7 +71,7 @@ def least_privilege_role(
     for permission in unique:
         if "*" in permission:
             raise ValueError(f"権限にワイルドカードは使えない: {permission!r}")
-        if not _PERMISSION_RE.match(permission):
+        if not _PERMISSION_RE.fullmatch(permission):
             raise ValueError(f"権限の形式が不正: {permission!r}")
 
     escalating = sorted(

@@ -62,7 +62,7 @@ def encrypted_instance_config(
             プレフィックス長 0、限定公開 IP も許可ネットワークも無い、
             削除保護を切ろうとした場合
     """
-    if not _NAME_RE.match(name):
+    if not _NAME_RE.fullmatch(name):
         raise ValueError(f"インスタンス名の形式が不正: {name!r}")
     connection_name = f"{project_id}:{name}"
     if len(connection_name) > MAX_CONNECTION_NAME:
@@ -70,7 +70,7 @@ def encrypted_instance_config(
             f"<プロジェクト>:<インスタンス> は {MAX_CONNECTION_NAME} 文字まで:"
             f" {connection_name!r}"
         )
-    if not _VERSION_RE.match(database_version):
+    if not _VERSION_RE.fullmatch(database_version):
         raise ValueError(f"データベースの版の形式が不正: {database_version!r}")
     if disk_size_gb < 10:
         raise ValueError(f"ディスクは 10 GB 以上: {disk_size_gb}")

@@ -50,7 +50,7 @@ def encrypted_server_config(
         ValueError: 名前やログイン名の形式違い、ストレージが 32 GB 未満、
             未知の高可用性モード、閉域構成や顧客管理鍵の指定が揃っていない場合
     """
-    if not _NAME_RE.match(name):
+    if not _NAME_RE.fullmatch(name):
         raise ValueError(f"サーバー名は英小文字・数字・ハイフンで 3〜63 文字: {name!r}")
     if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,62}", admin_login):
         raise ValueError(f"管理者ログイン名の形式が不正: {admin_login!r}")

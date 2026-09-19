@@ -49,7 +49,7 @@ def error_rate_alert(
     """
     if not display_name:
         raise ValueError("display_name は空にできない")
-    if not _SERVICE_NAME_RE.match(service_name):
+    if not _SERVICE_NAME_RE.fullmatch(service_name):
         raise ValueError(
             "service_name は英小文字・数字・ハイフンで 1〜49 文字。"
             f"クエリに引用符や改行を混ぜられない: {service_name!r}"

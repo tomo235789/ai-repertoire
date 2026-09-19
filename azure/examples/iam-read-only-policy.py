@@ -62,10 +62,10 @@ def read_only_role(
     if not assignable_scopes:
         raise ValueError("assignable_scopes は 1 件以上必要")
     for provider in providers:
-        if not _PROVIDER_RE.match(provider):
+        if not _PROVIDER_RE.fullmatch(provider):
             raise ValueError(f"プロバイダ名の形式が不正: {provider!r}")
     for scope in assignable_scopes:
-        if not _SCOPE_RE.match(scope):
+        if not _SCOPE_RE.fullmatch(scope):
             raise ValueError(f"スコープの形式が不正: {scope!r}")
     for action in data_read_actions:
         if not action.endswith("/read"):
@@ -105,7 +105,7 @@ def built_in_reader_role_id(scope: str) -> str:
     Raises:
         ValueError: scope が /subscriptions/ から始まらない場合
     """
-    match = _SCOPE_RE.match(scope)
+    match = _SCOPE_RE.fullmatch(scope)
     if match is None:
         raise ValueError(f"スコープの形式が不正: {scope!r}")
     # ロール定義はサブスクリプションスコープに置かれる

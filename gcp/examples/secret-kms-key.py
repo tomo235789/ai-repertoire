@@ -61,9 +61,9 @@ def customer_managed_key(
             次回ローテーション時刻が RFC 3339 でないか実在しない場合
     """
     for label, value in (("key_ring", key_ring), ("key_name", key_name)):
-        if not _NAME_RE.match(value):
+        if not _NAME_RE.fullmatch(value):
             raise ValueError(f"{label} の形式が不正: {value!r}")
-    if not _RFC3339_RE.match(next_rotation_time):
+    if not _RFC3339_RE.fullmatch(next_rotation_time):
         raise ValueError(
             f"次回ローテーション時刻は RFC 3339 の UTC で渡す: {next_rotation_time!r}"
         )

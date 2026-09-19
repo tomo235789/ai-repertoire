@@ -55,7 +55,7 @@ def container_service_config(
             インスタンス数や同時実行数が不正、未知の ingress、
             環境変数に秘密らしい値を入れた場合
     """
-    if not _NAME_RE.match(name):
+    if not _NAME_RE.fullmatch(name):
         raise ValueError(f"サービス名は英小文字・数字・ハイフンで 1〜49 文字: {name!r}")
     if ":" not in image.rsplit("/", 1)[-1] and "@sha256:" not in image:
         raise ValueError(f"イメージにタグかダイジェストを付ける: {image!r}")
@@ -63,9 +63,9 @@ def container_service_config(
         raise ValueError("latest タグはリビジョンを再現できないので使わない")
     if "@" not in service_account:
         raise ValueError(f"サービスアカウントはメールアドレスで指定する: {service_account!r}")
-    if not _CPU_RE.match(cpu):
+    if not _CPU_RE.fullmatch(cpu):
         raise ValueError(f"CPU の形式が不正: {cpu!r}")
-    if not _MEMORY_RE.match(memory):
+    if not _MEMORY_RE.fullmatch(memory):
         raise ValueError(f"メモリの形式が不正: {memory!r}")
     if min_instances < 0 or max_instances < 1 or min_instances > max_instances:
         raise ValueError(f"インスタンス数が不正: min={min_instances} max={max_instances}")

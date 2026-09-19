@@ -43,7 +43,7 @@ def private_subnet_config(
         ValueError: 名前の形式違い、CIDR が不正、ホスト部が残っている、
             プレフィックスが /29 より小さい、公開 IP を前提とする設定を混ぜた場合
     """
-    if not _NAME_RE.match(name):
+    if not _NAME_RE.fullmatch(name):
         raise ValueError(f"サブネット名の形式が不正: {name!r}")
 
     try:

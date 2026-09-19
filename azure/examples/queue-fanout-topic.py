@@ -49,7 +49,7 @@ def fanout_topic(
         ValueError: 名前の形式違い、購読者が空、寿命や配信回数が不正、
             フィルタ式に危険な文字が混ざっている場合
     """
-    if not _NAME_RE.match(topic_name):
+    if not _NAME_RE.fullmatch(topic_name):
         raise ValueError(f"トピック名の形式が不正: {topic_name!r}")
     if not subscribers:
         raise ValueError("subscribers は 1 件以上必要")
@@ -79,7 +79,7 @@ def fanout_topic(
 
     subscriptions: dict[str, dict] = {}
     for sub_name, filter_expression in sorted(subscribers.items()):
-        if not _SUBSCRIPTION_NAME_RE.match(sub_name):
+        if not _SUBSCRIPTION_NAME_RE.fullmatch(sub_name):
             raise ValueError(
                 f"サブスクリプション名は英数字・ピリオド・ハイフン・アンダースコアで"
                 f" 1〜50 文字: {sub_name!r}"

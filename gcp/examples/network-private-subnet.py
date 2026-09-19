@@ -48,7 +48,7 @@ def private_subnet_config(
             プレフィックス長が /4〜/29 の外、purpose が PRIVATE 以外、
             副レンジが主レンジや他の副レンジと重なる、サンプリング率が範囲外の場合
     """
-    if not _NAME_RE.match(name):
+    if not _NAME_RE.fullmatch(name):
         raise ValueError(f"サブネット名の形式が不正: {name!r}")
     if not 0 < flow_log_sampling <= _MAX_SAMPLE_RATE:
         raise ValueError(f"サンプリング率は 0 より大きく 1.0 以下: {flow_log_sampling}")
@@ -71,7 +71,7 @@ def private_subnet_config(
     secondary_list: list[dict] = []
     accepted_secondaries: list[tuple[str, ipaddress.IPv4Network]] = []
     for range_name, cidr in sorted((secondary_ranges or {}).items()):
-        if not _NAME_RE.match(range_name):
+        if not _NAME_RE.fullmatch(range_name):
             raise ValueError(f"副レンジ名の形式が不正: {range_name!r}")
         try:
             secondary = ipaddress.ip_network(cidr, strict=True)

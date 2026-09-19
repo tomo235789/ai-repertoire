@@ -82,19 +82,19 @@ def container_service_config(
             CPU が許可された値でない、レプリカ数が不正、
             registry_identity が "system" でも ARM リソース ID でもない場合
     """
-    if not _NAME_RE.match(name) or not 2 <= len(name) <= 32:
+    if not _NAME_RE.fullmatch(name) or not 2 <= len(name) <= 32:
         raise ValueError(f"Container App 名は英小文字・数字・ハイフンで 2〜32 文字: {name!r}")
     host, repository, reference = _split_image(image)
-    if host and not _HOST_RE.match(host):
+    if host and not _HOST_RE.fullmatch(host):
         raise ValueError(f"レジストリのホスト名が不正: {image!r}")
-    if not _REPOSITORY_RE.match(repository):
+    if not _REPOSITORY_RE.fullmatch(repository):
         raise ValueError(f"イメージのリポジトリ名が不正: {image!r}")
     if "@" in image:
-        if not _DIGEST_RE.match(reference):
+        if not _DIGEST_RE.fullmatch(reference):
             raise ValueError(f"ダイジェストは <repo>@sha256:<64 桁> の形にする: {image!r}")
     elif not reference:
         raise ValueError(f"イメージにタグを付ける（ダイジェスト固定が望ましい）: {image!r}")
-    elif not _TAG_RE.match(reference):
+    elif not _TAG_RE.fullmatch(reference):
         raise ValueError(f"タグの形式が不正: {image!r}")
     elif reference == "latest":
         raise ValueError("latest タグはリビジョンを再現できないので使わない")
@@ -118,7 +118,7 @@ def container_service_config(
             "traffic": [{"latestRevision": True, "weight": 100}],
         },
     }
-    if registry_identity != "system" and not _UAMI_RE.match(registry_identity):
+    if registry_identity != "system" and not _UAMI_RE.fullmatch(registry_identity):
         raise ValueError(
             "registry_identity は \"system\" かユーザー割り当て ID の ARM リソース ID: "
             f"{registry_identity!r}"

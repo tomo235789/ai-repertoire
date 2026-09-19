@@ -61,7 +61,7 @@ def fifo_queue_with_dlq(
         ValueError: 名前の形式違い、ロック時間が 1〜300 の外、配信回数が 1 未満、
             寿命が重複検出の窓以下、サイズが対応値以外の場合
     """
-    if not _NAME_RE.match(name):
+    if not _NAME_RE.fullmatch(name):
         raise ValueError(f"キュー名の形式が不正: {name!r}")
     if not 1 <= lock_seconds <= MAX_LOCK_SECONDS:
         raise ValueError(f"ロック時間は 1〜{MAX_LOCK_SECONDS} 秒: {lock_seconds}")

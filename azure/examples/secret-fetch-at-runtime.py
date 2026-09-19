@@ -29,9 +29,9 @@ def key_vault_reference(vault_name: str, secret_name: str, version: str | None =
     Raises:
         ValueError: 名前の形式違い、バージョンが 32 桁の 16 進でない場合
     """
-    if not _VAULT_RE.match(vault_name):
+    if not _VAULT_RE.fullmatch(vault_name):
         raise ValueError(f"Key Vault 名の形式が不正: {vault_name!r}")
-    if not _SECRET_RE.match(secret_name):
+    if not _SECRET_RE.fullmatch(secret_name):
         raise ValueError(f"シークレット名の形式が不正: {secret_name!r}")
     uri = f"https://{vault_name}.vault.azure.net/secrets/{secret_name}"
     if version is not None:
@@ -69,7 +69,7 @@ def runtime_secret_config(
     """
     if not secrets:
         raise ValueError("secrets は 1 件以上必要")
-    if not _UUID_RE.match(principal_id):
+    if not _UUID_RE.fullmatch(principal_id):
         raise ValueError(f"principal_id は GUID を指定する: {principal_id!r}")
     pin_versions = dict(pin_versions or {})
     unknown = set(pin_versions) - set(secrets)

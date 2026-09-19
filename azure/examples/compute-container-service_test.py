@@ -151,6 +151,13 @@ def test_registry_host_validated():
             container_service_config("example-api", bad, ENV_ID)
 
 
+def test_trailing_newline_rejected():
+    """改行を含む参照は通さない。match だと改行の手前で止まる"""
+    for bad in ("example.azurecr.io\n/api:1", "example.azurecr.io/api\n:1", "api:1\n"):
+        with pytest.raises(ValueError):
+            container_service_config("example-api", bad, ENV_ID)
+
+
 def test_pure_and_serializable():
     """引数を変更せず、返り値は JSON にできる"""
     env = {"A": "1"}

@@ -60,15 +60,15 @@ def service_identity_config(
             権限の広いロールを明示許可なしに指定、
             Workload Identity の指定が片方だけの場合
     """
-    if not _PROJECT_RE.match(project_id):
+    if not _PROJECT_RE.fullmatch(project_id):
         raise ValueError(f"プロジェクト ID の形式が不正: {project_id!r}")
-    if not _ACCOUNT_ID_RE.match(account_id):
+    if not _ACCOUNT_ID_RE.fullmatch(account_id):
         raise ValueError(f"サービスアカウント ID は英小文字・数字・ハイフンで 6〜30 文字: {account_id!r}")
     unique_roles = sorted(set(roles))
     if not unique_roles:
         raise ValueError("roles は 1 件以上必要")
     for role in unique_roles:
-        if not _ROLE_RE.match(role):
+        if not _ROLE_RE.fullmatch(role):
             raise ValueError(f"ロールの形式が不正: {role!r}")
     privileged = sorted(set(unique_roles) & PRIVILEGED_ROLES)
     if privileged and not allow_privileged_roles:

@@ -43,7 +43,7 @@ def backup_retention_config(
             ログ保持日数が 1〜7 の外、
             ポイントインタイム復旧を切ってログ保持だけ指定した場合
     """
-    if not _TIME_RE.match(start_time):
+    if not _TIME_RE.fullmatch(start_time):
         raise ValueError(f"開始時刻は UTC の HH:MM で指定する: {start_time!r}")
     if not MIN_BACKUP_COUNT <= retained_backups <= MAX_BACKUP_COUNT:
         raise ValueError(

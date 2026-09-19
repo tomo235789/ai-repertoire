@@ -75,9 +75,9 @@ def private_container_config(
         ValueError: 名前の形式違い、顧客管理鍵にユーザー割り当て ID が無い、
             `allUsers` のような匿名プリンシパルの指定
     """
-    if not _ACCOUNT_RE.match(account_name):
+    if not _ACCOUNT_RE.fullmatch(account_name):
         raise ValueError(f"ストレージアカウント名は小文字英数字 3〜24 文字: {account_name!r}")
-    if not _CONTAINER_RE.match(container_name) or not 3 <= len(container_name) <= 63:
+    if not _CONTAINER_RE.fullmatch(container_name) or not 3 <= len(container_name) <= 63:
         raise ValueError(f"コンテナ名の形式が不正: {container_name!r}")
     if reader_principal_type not in PRINCIPAL_TYPES:
         raise ValueError(f"プリンシパル種別は {PRINCIPAL_TYPES} のいずれか: {reader_principal_type!r}")
@@ -116,7 +116,7 @@ def private_container_config(
     if tags:
         account["tags"] = dict(sorted(tags.items()))
     if key_vault_key_uri is not None:
-        if encryption_identity_id is None or not _UAMI_RE.match(encryption_identity_id):
+        if encryption_identity_id is None or not _UAMI_RE.fullmatch(encryption_identity_id):
             raise ValueError(
                 "作成と同時に顧客管理鍵を使うには、鍵を読むユーザー割り当て ID の "
                 "ARM リソース ID が要る。システム割り当て ID は作成後にしか決まらない"

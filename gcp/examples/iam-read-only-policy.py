@@ -58,7 +58,7 @@ def read_only_policy(
 
     result: list[dict] = []
     for role, members in sorted(bindings.items()):
-        if not _ROLE_RE.match(role):
+        if not _ROLE_RE.fullmatch(role):
             raise ValueError(f"ロールの形式が不正: {role!r}")
         if role in OVERBROAD_VIEWER_ROLES:
             raise ValueError(f"読み取り専用に含められないロール: {role!r}")
@@ -77,7 +77,7 @@ def read_only_policy(
         for member in unique_members:
             if member in PUBLIC_MEMBERS:
                 raise ValueError(f"公開メンバーには付与しない: {member!r}")
-            if not _MEMBER_RE.match(member):
+            if not _MEMBER_RE.fullmatch(member):
                 raise ValueError(f"メンバーの形式が不正: {member!r}")
         binding: dict = {"role": role, "members": unique_members}
         if condition is not None:

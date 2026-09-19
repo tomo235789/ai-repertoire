@@ -61,7 +61,7 @@ def error_rate_alert(
     if not name:
         raise ValueError("name は空にできない")
     for label, value in (("scope_id", scope_id), ("action_group_id", action_group_id)):
-        if not ARM_RESOURCE_ID_RE.match(value):
+        if not ARM_RESOURCE_ID_RE.fullmatch(value):
             raise ValueError(f"{label} は ARM リソース ID を指定する: {value!r}")
     for label, value in (
         ("window_minutes", window_minutes),

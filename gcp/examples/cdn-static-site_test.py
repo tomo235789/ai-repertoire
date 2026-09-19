@@ -128,6 +128,11 @@ def test_google_lookalike_bucket_names_rejected():
             static_site_config("example-site", bad, ["www.example.com"])
 
 
+def test_short_bucket_labels_allowed():
+    """ドットで区切った各要素は 1 文字でもよい"""
+    assert static_site_config("example-site", "a.com", ["www.example.com"])
+
+
 def test_pure_and_serializable():
     """同じ入力に同じ出力を返し、JSON にできる"""
     a = _cfg()

@@ -29,9 +29,9 @@ def secret_version_name(project_id: str, secret_id: str, version: str = "latest"
         ValueError: プロジェクト ID やシークレット名の形式違い、
             バージョンが "latest" でも正の整数でもない場合
     """
-    if not _PROJECT_RE.match(project_id):
+    if not _PROJECT_RE.fullmatch(project_id):
         raise ValueError(f"プロジェクト ID の形式が不正: {project_id!r}")
-    if not _SECRET_RE.match(secret_id):
+    if not _SECRET_RE.fullmatch(secret_id):
         raise ValueError(f"シークレット名の形式が不正: {secret_id!r}")
     if version != "latest" and not (version.isdigit() and int(version) > 0):
         raise ValueError(f"バージョンは 'latest' か正の整数: {version!r}")
@@ -63,7 +63,7 @@ def runtime_secret_config(
     """
     if not secrets:
         raise ValueError("secrets は 1 件以上必要")
-    if not _SERVICE_ACCOUNT_RE.match(service_account):
+    if not _SERVICE_ACCOUNT_RE.fullmatch(service_account):
         raise ValueError(
             "サービスアカウントは <name>@<project>.iam.gserviceaccount.com か "
             "<番号>-compute@developer.gserviceaccount.com を指定する: "
@@ -78,7 +78,7 @@ def runtime_secret_config(
     iam_bindings: list[dict] = []
     member = f"serviceAccount:{service_account}"
     for env_name, secret_id in sorted(secrets.items()):
-        if not _ENV_RE.match(env_name):
+        if not _ENV_RE.fullmatch(env_name):
             raise ValueError(f"環境変数名は大文字とアンダースコア: {env_name!r}")
         version = pin_versions.get(env_name, "latest")
         # 形式の検査はここで一度だけ行う
