@@ -123,6 +123,16 @@ def test_push_arguments_must_be_paired():
         fanout_topic(TOPIC, {BILLING: {"push_service_account": SA}})
 
 
+def test_project_number_must_be_ascii_digits():
+    """サービスエージェントの名前になるので数字以外は受け付けない"""
+    with pytest.raises(ValueError, match="ASCII 数字"):
+        fanout_topic(
+            TOPIC,
+            {BILLING: {"push_endpoint": "https://example.com/hook", "push_service_account": SA}},
+            subscription_project_number="my-project",
+        )
+
+
 def test_invalid_inputs():
     """名前・購読者・保持日数・設定キーの不正は ValueError"""
     with pytest.raises(ValueError):

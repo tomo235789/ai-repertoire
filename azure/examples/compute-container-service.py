@@ -12,7 +12,32 @@ _NAME_RE = re.compile(r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$")
 # Container Apps の CPU とメモリは 0.25 コアあたり 0.5 GiB の比で固定されている
 _MEMORY_GIB_PER_CPU = 2.0
 _ALLOWED_CPU = (0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0)
-_DIGEST_RE = re.compile(r"^[a-z0-9._-]+@sha256:[0-9a-f]{64}$")
+# [HOST[:PORT]/]PATH[:TAG] と [HOST[:PORT]/]PATH@sha256:<64 桁>
+_TAG_RE = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9._-]{0,127}$")
+_REPOSITORY_RE = re.compile(r"^[a-z0-9]+([._-][a-z0-9]+)*(/[a-z0-9]+([._-][a-z0-9]+)*)*$")
+_DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
+
+
+def _split_image(image: str) -> tuple[str, str, str]:
+    """イメージ参照を (ホスト, リポジトリ, タグかダイジェスト) に分ける。
+
+    ホストは `.` か `:` を含むか `localhost` の先頭要素。無ければ空文字。
+    """
+    head, _, rest = image.partition("/")
+    if rest and ("." in head or ":" in head or head == "localhost"):
+        host, remainder = head, rest
+    else:
+        host, remainder = "", image
+    repository, sep, reference = remainder.partition("@")
+    if sep:
+        return host, repository, reference
+    # タグの `:` はパスの最後の要素にしか現れない
+    repository, sep, reference = remainder.rpartition(":")
+    if not sep:
+        return host, remainder, ""
+    if "/" in reference:
+        return host, remainder, ""
+    return host, repository, reference
 _UAMI_RE = re.compile(
     r"^/subscriptions/[^/]+/resourceGroups/[^/]+"
     r"/providers/Microsoft\.ManagedIdentity/userAssignedIdentities/[^/]+$"
@@ -58,13 +83,17 @@ def container_service_config(
     """
     if not _NAME_RE.match(name) or not 2 <= len(name) <= 32:
         raise ValueError(f"Container App 名は英小文字・数字・ハイフンで 2〜32 文字: {name!r}")
-    image_ref = image.rsplit("/", 1)[-1]
-    if "@" in image_ref:
-        if not _DIGEST_RE.match(image_ref):
+    _, repository, reference = _split_image(image)
+    if not _REPOSITORY_RE.match(repository):
+        raise ValueError(f"イメージのリポジトリ名が不正: {image!r}")
+    if "@" in image:
+        if not _DIGEST_RE.match(reference):
             raise ValueError(f"ダイジェストは <repo>@sha256:<64 桁> の形にする: {image!r}")
-    elif ":" not in image_ref or not image_ref.rsplit(":", 1)[-1]:
+    elif not reference:
         raise ValueError(f"イメージにタグを付ける（ダイジェスト固定が望ましい）: {image!r}")
-    elif image_ref.rsplit(":", 1)[-1] == "latest":
+    elif not _TAG_RE.match(reference):
+        raise ValueError(f"タグの形式が不正: {image!r}")
+    elif reference == "latest":
         raise ValueError("latest タグはリビジョンを再現できないので使わない")
     if not 1 <= target_port <= 65535:
         raise ValueError(f"ポートが範囲外: {target_port}")

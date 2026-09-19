@@ -38,7 +38,7 @@ client.private_dns_zone_groups.begin_create_or_update(
 - `private_dns_zone` はサブリソースに対応する `privatelink.*` のゾーン名。`PRIVATE_DNS_ZONES` に載っているキーだけ受け付ける
 - `dns_zone_group` は `private_dns_zone_id` を渡したときだけ作られる。省略すると `None`
 - NIC 名はエンドポイント名に `-nic` を付けたもの
-- `ValueError`: 名前が空、サブネット・接続先・プライベート DNS ゾーンのいずれかが ARM リソース ID の形をしていない、未知のサブリソース
+- `ValueError`: 名前が空、サブネットか接続先が ARM リソース ID の形をしていない、DNS ゾーンが `Microsoft.Network/privateDnsZones` のリソース ID でない、未知のサブリソース
 - 同じ入力に同じ出力を返し、返り値は `json.dumps` できる
 
 ## Alternatives

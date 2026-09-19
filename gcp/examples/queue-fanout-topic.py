@@ -108,10 +108,13 @@ def fanout_topic(
                 raise ValueError(
                     f"プッシュ配信には署名するサービスアカウントが要る: {name!r}"
                 )
-            if not subscription_project_number:
+            if not subscription_project_number or not re.fullmatch(
+                r"[0-9]+", subscription_project_number
+            ):
                 raise ValueError(
-                    "プッシュ配信には subscription_project_number が要る。"
-                    "Pub/Sub のサービスエージェントが署名するため"
+                    "プッシュ配信には ASCII 数字の subscription_project_number が要る。"
+                    "Pub/Sub のサービスエージェントが署名するため: "
+                    f"{subscription_project_number!r}"
                 )
             config["push_config"] = {
                 "push_endpoint": endpoint,

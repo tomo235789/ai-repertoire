@@ -39,7 +39,7 @@ for sub in cfg["subscription_configs"]:
 - `expiration_policy` は常に空。使われない期間があっても購読が自動で消えない
 - `filter` は指定した購読だけに入る
 - `push_endpoint` を指定した購読は `oidc_token` 付きの `push_config` を持つ。ホスト名を持つ HTTPS 以外と、署名するサービスアカウントの無い指定は `ValueError`
-- プッシュ配信を使うと `token_creator_bindings` に、Pub/Sub サービスエージェントへ `roles/iam.serviceAccountTokenCreator` を与えるバインディングが入る。無いと署名できずプッシュが失敗する。そのため `subscription_project_number` が要る
+- プッシュ配信を使うと `token_creator_bindings` に、Pub/Sub サービスエージェントへ `roles/iam.serviceAccountTokenCreator` を与えるバインディングが入る。無いと署名できずプッシュが失敗する。そのため ASCII 数字の `subscription_project_number` が要る
 - `schema_settings` と `kms_key_name` はトピック側に、渡したときだけ入る
 - `ValueError`: トピックが `projects/<project>/topics/<id>`、購読が `projects/<project>/subscriptions/<id>` の形でない、名前の形式違い、購読者が空、保持日数が 1〜31 の外、購読設定に未知のキー
 - 引数を変更せず、返り値は `json.dumps` できる

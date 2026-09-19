@@ -22,6 +22,10 @@ PRIVATE_DNS_ZONES: dict[str, str] = {
 }
 
 _RESOURCE_ID_RE = re.compile(r"^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/.+$")
+_DNS_ZONE_ID_RE = re.compile(
+    r"^/subscriptions/[^/]+/resourceGroups/[^/]+"
+    r"/providers/Microsoft\.Network/privateDnsZones/[^/]+$"
+)
 
 
 def private_endpoint_config(
@@ -78,9 +82,10 @@ def private_endpoint_config(
     zone = PRIVATE_DNS_ZONES[group_id]
     dns_zone_group = None
     if private_dns_zone_id is not None:
-        if not _RESOURCE_ID_RE.match(private_dns_zone_id):
+        if not _DNS_ZONE_ID_RE.match(private_dns_zone_id):
             raise ValueError(
-                f"private_dns_zone_id は ARM リソース ID を指定する: {private_dns_zone_id!r}"
+                "private_dns_zone_id は Microsoft.Network/privateDnsZones の "
+                f"ARM リソース ID を指定する: {private_dns_zone_id!r}"
             )
         dns_zone_group = {
             "properties": {

@@ -58,9 +58,25 @@ _MAX_MESSAGE_CHARS = 100 * 1024
 # LogEntry の上限は 256 KiB。メタデータのぶんを見込んで保守的に切る
 MAX_ENTRY_BYTES = 200 * 1024
 
+# Cloud Storage のバケット名。全体 222 文字、ドットで区切った各要素は 63 文字まで。
+# goog 接頭辞、google を含む名前、IP アドレス形式は使えない
+_BUCKET_LABEL_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{1,61}[a-z0-9]$|^[a-z0-9]{3}$")
+_IPV4_LIKE_RE = re.compile(r"^\d{1,3}(\.\d{1,3}){3}$")
+
+
+def _is_valid_bucket_name(name: str) -> bool:
+    """Cloud Storage が受け付けるバケット名かを判定する"""
+    if not 3 <= len(name) <= 222 or ".." in name:
+        return False
+    if name.startswith("goog") or "google" in name or _IPV4_LIKE_RE.match(name):
+        return False
+    labels = name.split(".")
+    if len(labels) > 1 and len(name) > 222:
+        return False
+    return all(_BUCKET_LABEL_RE.match(label) for label in labels)
+
 # Cloud Logging がシンクの転送先として受け付ける形式
 _SINK_DESTINATION_RES = (
-    re.compile(r"^storage\.googleapis\.com/[a-z0-9][a-z0-9._-]{1,61}[a-z0-9]$"),
     re.compile(r"^bigquery\.googleapis\.com/projects/[^/]+/datasets/[A-Za-z0-9_]+$"),
     re.compile(r"^pubsub\.googleapis\.com/projects/[^/]+/topics/[^/]+$"),
     re.compile(r"^logging\.googleapis\.com/projects/[^/]+/locations/[^/]+/buckets/[^/]+$"),
@@ -145,7 +161,11 @@ def log_sink(
     """
     if not name:
         raise ValueError("name は空にできない")
-    if not any(pattern.match(destination) for pattern in _SINK_DESTINATION_RES):
+    storage_prefix = "storage.googleapis.com/"
+    if destination.startswith(storage_prefix):
+        if not _is_valid_bucket_name(destination[len(storage_prefix) :]):
+            raise ValueError(f"転送先のバケット名が不正: {destination!r}")
+    elif not any(pattern.match(destination) for pattern in _SINK_DESTINATION_RES):
         raise ValueError(
             f"転送先は {SINK_DESTINATION_FORMS} のいずれかの形にする: {destination!r}"
         )

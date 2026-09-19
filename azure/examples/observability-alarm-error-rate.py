@@ -14,7 +14,7 @@ _SEVERITY_RANGE = range(0, 5)
 
 # /subscriptions/<id>/resourceGroups/<rg>/providers/<provider>/<type>/<name>
 ARM_RESOURCE_ID_RE = re.compile(
-    r"^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/[^/]+/[^/]+/[^/]+"
+    r"^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/[^/]+(/[^/]+/[^/]+)+$"
 )
 
 

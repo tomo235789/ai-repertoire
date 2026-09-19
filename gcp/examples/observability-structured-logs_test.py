@@ -108,6 +108,13 @@ def test_sink_validation():
         log_sink("s", BUCKET_DEST, "")
 
 
+def test_sink_bucket_name_validated():
+    """バケット転送先も Cloud Storage の命名規則で見る"""
+    for bad in ("storage.googleapis.com/goog-logs", "storage.googleapis.com/192.168.5.4"):
+        with pytest.raises(ValueError, match="バケット名"):
+            log_sink("s", bad, "true")
+
+
 def test_pure_and_serializable():
     """同じ入力に同じ出力を返し、JSON にできる"""
     assert log_line(TS, "INFO", "x") == log_line(TS, "INFO", "x")

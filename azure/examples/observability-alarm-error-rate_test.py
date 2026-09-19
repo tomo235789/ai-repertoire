@@ -74,6 +74,23 @@ def test_evaluation_must_not_exceed_window():
         _cfg(window_minutes=5, evaluation_minutes=15)
 
 
+def test_arm_id_must_be_complete():
+    """接頭辞だけの ARM ID は通さない"""
+    partial = "/subscriptions/00000000-0000-0000-0000-000000000000"
+    with pytest.raises(ValueError, match="scope_id"):
+        error_rate_alert("error-rate", partial, ACTION)
+    with pytest.raises(ValueError, match="action_group_id"):
+        error_rate_alert("error-rate", SCOPE, partial)
+
+
+def test_integer_parameters_checked():
+    """小数を渡すと ISO 8601 の duration が壊れるので弾く"""
+    with pytest.raises(ValueError, match="window_minutes"):
+        _cfg(window_minutes=15.0)
+    with pytest.raises(ValueError, match="severity"):
+        _cfg(severity=True)
+
+
 def test_invalid_inputs():
     """名前・ARM ID・しきい値・期間・件数・重大度の不正は ValueError"""
     with pytest.raises(ValueError):

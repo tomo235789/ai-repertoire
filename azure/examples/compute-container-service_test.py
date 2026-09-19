@@ -129,6 +129,21 @@ def test_registry_identity_added_to_app():
         container_service_config("example-api", IMAGE, ENV_ID, registry_identity="example-mi")
 
 
+def test_image_reference_grammar():
+    """[HOST[:PORT]/]PATH[:TAG] の形を守る"""
+    ok = [
+        "example.azurecr.io/api:1",
+        "localhost:5000/team/api:1",
+        "example.azurecr.io/team/sub/api:1.4.2",
+        "api:1",
+    ]
+    for image in ok:
+        assert container_service_config("example-api", image, ENV_ID)
+    for bad in ("api:1:2", "example.azurecr.io/API:1", "example.azurecr.io/api:@"):
+        with pytest.raises(ValueError):
+            container_service_config("example-api", bad, ENV_ID)
+
+
 def test_pure_and_serializable():
     """引数を変更せず、返り値は JSON にできる"""
     env = {"A": "1"}

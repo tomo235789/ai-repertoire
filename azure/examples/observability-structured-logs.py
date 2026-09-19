@@ -45,7 +45,7 @@ RESERVED_KEYS = frozenset({"timestamp", "severity", "message", "operationId"})
 
 # /subscriptions/<id>/resourceGroups/<rg>/providers/<provider>/<type>/<name>
 ARM_RESOURCE_ID_RE = re.compile(
-    r"^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/[^/]+/[^/]+/[^/]+"
+    r"^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/[^/]+(/[^/]+/[^/]+)+$"
 )
 
 

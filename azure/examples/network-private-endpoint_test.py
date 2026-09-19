@@ -104,6 +104,16 @@ def test_invalid_inputs():
         private_endpoint_config("pe", SUBNET, TARGET, "bucket")
 
 
+def test_dns_zone_id_must_be_private_dns_zone():
+    """DNS ゾーンは Microsoft.Network/privateDnsZones のリソース ID"""
+    wrong = (
+        "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg"
+        "/providers/Microsoft.Network/virtualNetworks/example-vnet"
+    )
+    with pytest.raises(ValueError, match="privateDnsZones"):
+        private_endpoint_config("pe", SUBNET, TARGET, "blob", private_dns_zone_id=wrong)
+
+
 def test_pure_and_serializable():
     """同じ入力に同じ出力を返し、JSON にできる"""
     a = private_endpoint_config("pe", SUBNET, TARGET, "blob")

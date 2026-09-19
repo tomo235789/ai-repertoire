@@ -115,6 +115,12 @@ def test_reserved_bucket_names_rejected():
             static_site_config("example-site", bad, ["www.example.com"])
 
 
+def test_dotted_bucket_names_allowed():
+    """ドットで区切った各要素が 63 文字以内なら、全体が 63 文字を超えてもよい"""
+    long_dotted = ".".join(["a" * 60] * 3)
+    assert static_site_config("example-site", long_dotted, ["www.example.com"])
+
+
 def test_pure_and_serializable():
     """同じ入力に同じ出力を返し、JSON にできる"""
     a = _cfg()
